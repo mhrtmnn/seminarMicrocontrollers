@@ -72,15 +72,26 @@ all:	main.hex
 flash:	all
 	$(AVRDUDE) -U flash:w:main.hex:i
 
-assembly: $(OBJECTS)
-	avr-objdump -l -d -M intel -S $(OBJECTS) > main.asm
+objdump: $(OBJECTS)
+	avr-objdump -d -M intel -S $(OBJECTS) > main_dump.s
+
+assembly:
+	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main.s
+
+build_asm:
+	avr-gcc -std=gnu11 -Wall -Os -mmcu=atmega16 -DF_CPU=8000000 main.s -o main.elf
+	rm -f main.hex
+	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
+	avr-size --format=avr --mcu=atmega16 main.elf
+
+flash_asm:	build_asm
+	$(AVRDUDE) -U flash:w:main.hex:i
 
 fuse:
 	$(AVRDUDE) $(FUSES)
 
-
 clean:
-	rm -f main.hex main.elf main.asm $(OBJECTS)
+	rm -f main.hex main.elf main_dump.s main_gcc.s $(OBJECTS) main.s
 
 
 .c.o:
