@@ -3,7 +3,7 @@
 
 int main(void)
 {
-	DDRB = 0xFF;
+	DDRB = 0x01;
 
 	while(1)
 	{
