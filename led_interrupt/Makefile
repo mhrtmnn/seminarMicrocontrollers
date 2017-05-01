@@ -79,7 +79,7 @@ assembly:
 	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main.s
 
 build_asm:
-	avr-as -mmcu=atmega16 main.s -o main.elf
+	avr-gcc -std=gnu11 -Wall -Os -mmcu=atmega16 -DF_CPU=8000000 main.s -o main.elf
 	rm -f main.hex
 	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
 	avr-size --format=avr --mcu=atmega16 main.elf
