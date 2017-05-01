@@ -50,8 +50,8 @@ main_wait:
 
 	/* toggle led */
 	in r24,0x18 	/* r24 = PORTB */
-	ldi r25,0x01 	/* r25 = 0x01 = PB0 */
-	eor r24,r25 	/* r24 = r24^r25 */
+	ldi r23,0x01 	/* r23 = 0x01 = PB0 */
+	eor r24,r23 	/* r24 = r24^r23 */
 	out 0x18,r24 	/* PORTB = r24 */
 	rjmp main_loop
 
