@@ -61,6 +61,10 @@ FUSES      = -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m
 
 # Tune the lines below only if you know what you are doing:
 
+#  from gcc
+#avr-gcc -std=gnu11 -Wall -Os -mmcu=atmega16 -DF_CPU=8000000 main.s -o main.elf
+#avr-ld -plugin /usr/libexec/gcc/avr/6.2.0/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/avr/6.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccqrKELV.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-latmega16 -mavr5 -o main.elf /usr/lib/gcc/avr/6.2.0/../../../../avr/lib/avr5/crtatmega16.o -L/usr/lib/gcc/avr/6.2.0/avr5 -L/usr/lib/gcc/avr/6.2.0/../../../../avr/lib/avr5 -L/usr/lib/gcc/avr/6.2.0 -L/usr/lib/gcc/avr/6.2.0/../../../../avr/lib main.o --start-group -lgcc -lm -lc -latmega16 --end-group
+
 
 COMPILE = avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -g
 AVRDUDE = avrdude -c $(PROGRAMMER) -p $(DEVICE) -P $(PORT) -b $(BAUDRATE)
@@ -76,14 +80,11 @@ objdump: $(OBJECTS)
 	avr-objdump -d -M intel -S $(OBJECTS) > main_dump.s
 
 assembly:
-	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main.s
+	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main_gcc.s
 
 build_asm:
-	#avr-gcc -std=gnu11 -Wall -Os -mmcu=atmega16 -DF_CPU=8000000 main.s -o main.elf
 	avr-as -mmcu=avr5 -mno-skip-bug -o main.o main.s
 	avr-ld -mavr5 main.o -o main.elf
-#	avr-ld -mavr5 -L/usr/lib/gcc/avr/6.2.0 /usr/avr/lib/avr5/crtatmega16.o main.o -lgcc -o main.elf
-	#avr-ld -plugin /usr/libexec/gcc/avr/6.2.0/liblto_plugin.so -plugin-opt=/usr/libexec/gcc/avr/6.2.0/lto-wrapper -plugin-opt=-fresolution=/tmp/ccqrKELV.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lm -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-latmega16 -mavr5 -o main.elf /usr/lib/gcc/avr/6.2.0/../../../../avr/lib/avr5/crtatmega16.o -L/usr/lib/gcc/avr/6.2.0/avr5 -L/usr/lib/gcc/avr/6.2.0/../../../../avr/lib/avr5 -L/usr/lib/gcc/avr/6.2.0 -L/usr/lib/gcc/avr/6.2.0/../../../../avr/lib main.o --start-group -lgcc -lm -lc -latmega16 --end-group
 
 	rm -f main.hex
 	avr-objcopy -j .text -j .data -O ihex main.elf main.hex
@@ -96,7 +97,7 @@ fuse:
 	$(AVRDUDE) $(FUSES)
 
 clean:
-	rm -f main.hex main.elf main_dump.s main_gcc.s $(OBJECTS) main.s
+	rm -f main.hex main.elf main_dump.s main_gcc.s $(OBJECTS)
 
 
 .c.o:

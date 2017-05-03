@@ -80,7 +80,7 @@ objdump: $(OBJECTS)
 	avr-objdump -d -M intel -S $(OBJECTS) > main_dump.s
 
 assembly:
-	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main.s
+	avr-gcc -std=gnu11 -Wall -Os -mmcu=$(DEVICE) -DF_CPU=$(CLOCK) -S $(SRC) -o main_gcc.s
 
 build_asm:
 	avr-as -mmcu=avr5 -mno-skip-bug -o main.o main.s
@@ -97,7 +97,7 @@ fuse:
 	$(AVRDUDE) $(FUSES)
 
 clean:
-	rm -f main.hex main.elf main_dump.s main_gcc.s $(OBJECTS) main.s
+	rm -f main.hex main.elf main_dump.s main_gcc.s $(OBJECTS)
 
 
 .c.o:
