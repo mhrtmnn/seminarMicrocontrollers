@@ -99,37 +99,50 @@ BIT_PD7 = 0x80
 BIT_INT0 = 0x40
 BIT_INT1 = 0x80
 
+#Mem Adresses
+__SP_H__ = 0x3e
+__SP_L__ = 0x3d
+
+
 /************************* interrupt vector table *************************/
 .org 0x00
 	rjmp main 			/* reset */
 	reti
 	rjmp vector_0 		/* INT0 */
 	reti
-	rjmp vector_1 		/* INT1 */
+	rjmp vector_1		/* INT1 */
 	reti
 
 
 /********************************** setup **********************************/
 .org 0x30
 main:
-/* stack size = 0 */
+	/* setup stack pointer */
+	in r28,__SP_L__
+	in r29,__SP_H__
+	out __SP_H__,r29
+	out __SP_L__,r28
 
-	/* set PB0 - PB2 as output and set them high */
-	ldi r24,0x07 	/* r24 = 0x07 */
-	out DDRB,r24 	/* DDRB  = r24 */
-	out PORTB,r24 	/* PORTB = r24 */
+
+	/* LEDs: set PB0 - PB2 as output and set them high */
+	ldi r24,0x07 	/* PB0 - PB2 */
+	out DDRB,r24
+	out PORTB,r24
 
 	/* setup interrupts */
-	in r24,GICR 	/* r24 = GICR  */
-	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) = 0x40 */
-	ori r24,BIT_INT1 	/* enable INT1 = BIT(8) = 0x80*/
-	out GICR,r24 	/* GICR = r24 */
+	in r24,GICR
+	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) */
+	ori r24,BIT_INT1 	/* enable INT1 = BIT(8) */
+	out GICR,r24
 
-	/* The CBI and SBI instructions work with registers $00 to $1F only */
+	/* 
+	 * The CBI and SBI instructions work with registers $00 to $1F only
+	 * they clear/set the specified bit
+	 */
 	sbi PORTD,PD2 		/* enable PD2 in PORTD */
 	sbi PORTD,PD3 		/* enable PD3 in PORTD */
 
-	sei 			/*enable interrupts */
+	sei 				/*enable interrupts */
 
 
 /******************************** main loop  ********************************/
@@ -141,45 +154,46 @@ main_loop:
 
 main_wait:
 	subi r18,1
-	sbci r19,0
-	sbci r20,0
+	sbci r19,0		/* Subtract with Carry */
+	sbci r20,0		/* Subtract with Carry */
 	brne main_wait
 
 	/* toggle led */
-	in r24,PORTB 	/* r24 = PORTB */
+	in r24,PORTB
 	ldi r23,BIT_PB0
-	eor r24,r23 	/* r24 = r24^r23 */
-	out PORTB,r24 	/* PORTB = r24 */
+	eor r24,r23 	/* XOR */
+	out PORTB,r24
 	rjmp main_loop
 
 
 /******************************** ISR for INT0 ********************************/
 vector_0:
-	in r0,__SREG__ /* save status reg to r0 */
+	in r0,__SREG__ 		/* save status reg to r0 */
 	push r0
 	push r18
 	push r19
 	push r20
 	push r23
 	push r24
-/* stack size = 6 */
+	/* stack size = 6 */
 
-	in r24,PORTB 	/* r24 = PORTB */
+	/* toggle led */
+	in r24,PORTB
 	ldi r25,BIT_PB1
-	eor r24,r25 	/* r24 = r24^r25 */
-	out PORTB,r24 	/* PORTB = r24 */
+	eor r24,r25 		/* XOR */
+	out PORTB,r24
 
-	/* 200 ms delay */
+	/* debounce delay */
 	ldi r18,lo8(189999)
 	ldi r24,hi8(189999)
 	ldi r25,hlo8(189999)
 wait0:
 	subi r18,1
-	sbci r24,0
-	sbci r25,0
+	sbci r24,0		/* Subtract with Carry */
+	sbci r25,0		/* Subtract with Carry */
 	brne wait0
 
-/* pop all the registers in reverse order */
+	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
 	pop r20
@@ -194,31 +208,30 @@ wait0:
 
 /******************************** ISR for INT1 ********************************/
 vector_1:
-	in r0,__SREG__ /* save status reg to r0 */
+	in r0,__SREG__ 		/* save status reg to r0 */
 	push r0
 	push r18
 	push r19
 	push r20
 	push r23
 	push r24
-/* stack size = 6 [6 push commands] */
+	/* stack size = 6 */
 
-	in r24,PORTB 	/* r24 = PORTB */
-	ldi r25,BIT_PB2 	/* r25 = 0x04 = PB2 */
-	eor r24,r25 	/* r24 = r24^r25 */
-	out PORTB,r24 	/* PORTB = r24 */
+	ldi r24,BIT_PB2
+	push r24
+	rcall toggler
 
-	/* 200 ms delay */
+	/* debounce delay */
 	ldi r18,lo8(189999)
 	ldi r24,hi8(189999)
 	ldi r25,hlo8(189999)
 wait1:
 	subi r18,1
-	sbci r24,0
-	sbci r25,0
+	sbci r24,0		/* Subtract with Carry */
+	sbci r25,0		/* Subtract with Carry */
 	brne wait1
 
-/* pop all the registers in reverse order */
+	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
 	pop r20
@@ -229,3 +242,17 @@ wait1:
 
 	out __SREG__,r0 /* restore sreg */
 	reti
+
+toggler:
+	pop r18
+	pop r19
+	pop r27
+
+		/* toggle led */
+	in r24,PORTB
+	eor r24,r27 		/* XOR */
+	out PORTB,r24
+	
+	push r19
+	push r18
+	ret
