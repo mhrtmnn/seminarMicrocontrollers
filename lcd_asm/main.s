@@ -110,32 +110,35 @@ BIT_INT1 = 0x80
 	reti
 
 
-/********************************** main **********************************/
+/********************************** setup **********************************/
 .org 0x30
 main:
-/* stack size = 0 */
+	/* stack size = 0 */
 
-	/* lcd data pins as output */
+	/* LCD: set data pins as outputn and low (def value) */
 	ldi r24,0xFF 	/* PA0 - PA7 */
 	out DDRA,r24
 
 
-	/* set PB0 - PB2 as output and set them high */
+	/* LEDs: set PB0 - PB2 as output and set them high */
 	ldi r24,0x07 	/* PB0 - PB2 */
 	out DDRB,r24
 	out PORTB,r24
 
 	/* setup interrupts */
-	in r24,GICR 	/* r24 = GICR  */
-	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) = 0x40 */
-	ori r24,BIT_INT1 	/* enable INT1 = BIT(8) = 0x80*/
-	out GICR,r24 	/* GICR = r24 */
+	in r24,GICR
+	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) */
+	ori r24,BIT_INT1 	/* enable INT1 = BIT(8) */
+	out GICR,r24
 
-	/* The CBI and SBI instructions work with registers $00 to $1F only */
+	/* 
+	 * The CBI and SBI instructions work with registers $00 to $1F only
+	 * they clear/set the specified bit
+	 */
 	sbi PORTD,PD2 		/* enable PD2 in PORTD */
 	sbi PORTD,PD3 		/* enable PD3 in PORTD */
 
-	sei 			/*enable interrupts */
+	sei 				/*enable interrupts */
 
 
 /******************************** main loop  ********************************/
@@ -147,45 +150,46 @@ main_loop:
 
 main_wait:
 	subi r18,1
-	sbci r19,0
-	sbci r20,0
+	sbci r19,0		/* Subtract with Carry */
+	sbci r20,0		/* Subtract with Carry */
 	brne main_wait
 
 	/* toggle led */
-	in r24,PORTB 	/* r24 = PORTB */
-	ldi r23,BIT_PB0 	/* r23 = PB0 */
-	eor r24,r23 	/* r24 = r24^r23 */
-	out PORTB,r24 	/* PORTB = r24 */
+	in r24,PORTB
+	ldi r23,BIT_PB0
+	eor r24,r23 	/* XOR */
+	out PORTB,r24
 	rjmp main_loop
 
 
 /******************************** ISR for INT0 ********************************/
 vector_0:
-	in r0,__SREG__ /* save status reg to r0 */
+	in r0,__SREG__ 		/* save status reg to r0 */
 	push r0
 	push r18
 	push r19
 	push r20
 	push r23
 	push r24
-/* stack size = 6 */
+	/* stack size = 6 */
 
-	in r24,PORTB 		/* r24 = PORTB */
-	ldi r25,BIT_PB1 	/* r25 = 0x02 = PB1 */
-	eor r24,r25 		/* r24 = r24^r25 */
-	out PORTB,r24 		/* PORTB = r24 */
+	/* toggle led */
+	in r24,PORTB
+	ldi r25,BIT_PB1
+	eor r24,r25 		/* XOR */
+	out PORTB,r24
 
-	/* 200 ms delay */
+	/* debounce delay */
 	ldi r18,lo8(189999)
 	ldi r24,hi8(189999)
 	ldi r25,hlo8(189999)
 wait0:
 	subi r18,1
-	sbci r24,0
-	sbci r25,0
+	sbci r24,0		/* Subtract with Carry */
+	sbci r25,0		/* Subtract with Carry */
 	brne wait0
 
-/* pop all the registers in reverse order */
+	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
 	pop r20
@@ -197,6 +201,8 @@ wait0:
 	out __SREG__,r0 /* restore sreg */
 	reti
 
+
+/* Subtract with Carry */
 /******************************** ISR for INT1 ********************************/
 vector_lcd:
 	in r0,__SREG__ /* save status reg to r0 */
@@ -206,29 +212,28 @@ vector_lcd:
 	push r20
 	push r23
 	push r24
-/* stack size = 6 [6 push commands] */
+	/* stack size = 6 [6 push commands] */
 
 
-	#data to be displayed X == 0101 1000 == 0x05 0x08
+	/* data to be displayed 'X' == 0101 1000 == 0x05 0x08 */
 	ldi r25,0x05
 	ldi r26,0x08
 
-	#	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data)
-	in r24,PORTA 		/*PORTA*/
-	ori r24,BIT_PA4 	/* r24 = 0x10 PA4 */
-	out PORTA,r24 		/* PORTA  = r24 */
+	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
+	in r24,PORTA
+	ori r24,BIT_PA4
+	out PORTA,r24
 
 	/*######################### upper 4bit #########################*/
 
-	/*clear lower 4 bits */
 	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
-	in r24,PORTA 	/*PORTA*/
-	andi r24,0xF0 	/*1111 0000*/
-	or r24,r25
-	/*enable */
+	in r24,PORTA
+	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r25 		/* write payload from r25 */
+
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
-	ori r24, BIT_PA5
+	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
 	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
@@ -238,8 +243,8 @@ wait2:
 	brne wait2
 
 	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
-	in r24,PORTA 	/*PORTA*/
-	andi r24,0xDF 	/*1101 1111*/
+	in r24,PORTA
+	andi r24,0xDF 	/*1101 1111 -> EN pin low */
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
@@ -250,40 +255,41 @@ wait3:
 
 	/*######################### lower 4bit #########################*/
 
-	/*clear lower 4 bits */
-	/*		PORTA &= ~(0xF0>>(4-PA0));    # Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
-	/*		PORTA |= (data>>(4-PA0));     # Bits setzen */
-	in r24,PORTA 	/*PORTA*/
-	andi r24,0xF0 	/*1111 0000*/
-	or r24,r26
-	/*enable */
+	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
+	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
+	in r24,PORTA
+	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r25 		/* write payload from r25 */
+
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
-	ori r24, 0x20 		/* BIT(5) */
+	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 32 cycles]);  # kurze Pause */
+	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
 	ldi r18,lo8(32)
 wait4:
 	subi r18,1
 	brne wait4
 
-	/*		PORTA &= ~(1<<PA5);    # Enable auf 0 setzen */
-	in r24,PORTA 	/*PORTA*/
-	andi r24,0xDF 	/*1101 1111*/
+	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
+	in r24,PORTA
+	andi r24,0xDF 	/*1101 1111 -> EN pin low */
 	out PORTA,r24
 
-	/*		_delay_us(  [46 us == 74cycles]);  #kurze Pause */
+	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
 	ldi r18,lo8(74)
 wait5:
 	subi r18,1
-	brne wait3
+	brne wait5
 
-	in r24,PORTB 		/* r24 = PORTB */
-	ldi r25,BIT_PB2 	/* r25 = 0x04 = PB2 */
-	eor r24,r25 		/* r24 = r24^r25 */
-	out PORTB,r24 		/* PORTB = r24 */
 
-	/* 200 ms delay */
+	/*##################### toggle led for confirmation #####################*/
+	in r24,PORTB
+	ldi r25,BIT_PB2
+	eor r24,r25 		/* XOR */
+	out PORTB,r24
+
+	/* debounce delay */
 	ldi r18,lo8(189999)
 	ldi r19,hi8(189999)
 	ldi r20,hlo8(189999)
@@ -293,7 +299,7 @@ wait6:
 	sbci r20,0
 	brne wait6
 
-/* pop all the registers in reverse order */
+	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
 	pop r20
