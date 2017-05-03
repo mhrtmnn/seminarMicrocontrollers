@@ -147,7 +147,7 @@ main_wait:
 
 	/* toggle led */
 	in r24,PORTB 	/* r24 = PORTB */
-	ldi r23,0x01
+	ldi r23,BIT_PB0
 	eor r24,r23 	/* r24 = r24^r23 */
 	out PORTB,r24 	/* PORTB = r24 */
 	rjmp main_loop
