@@ -211,7 +211,6 @@ wait0:
 	reti
 
 
-/* Subtract with Carry */
 /******************************** ISR for INT1 ********************************/
 vector_lcd:
 	in r0,__SREG__ /* save status reg to r0 */
