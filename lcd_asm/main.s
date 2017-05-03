@@ -171,6 +171,8 @@ main_wait:
 	rjmp main_loop
 
 
+
+
 /******************************** ISR for INT0 ********************************/
 vector_0:
 	in r0,__SREG__ 		/* save status reg to r0 */
@@ -183,20 +185,9 @@ vector_0:
 	/* stack size = 6 */
 
 	/* toggle led */
-	in r24,PORTB
-	ldi r25,BIT_PB1
-	eor r24,r25 		/* XOR */
-	out PORTB,r24
-
-	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r24,hi8(189999)
-	ldi r25,hlo8(189999)
-wait0:
-	subi r18,1
-	sbci r24,0		/* Subtract with Carry */
-	sbci r25,0		/* Subtract with Carry */
-	brne wait0
+	ldi r24,BIT_PB1
+	push r24
+	rcall toggler
 
 	/* pop all the registers in reverse order */
 	pop r24
@@ -209,6 +200,8 @@ wait0:
 
 	out __SREG__,r0 /* restore sreg */
 	reti
+
+
 
 
 /******************************** ISR for INT1 ********************************/
@@ -225,14 +218,72 @@ vector_lcd:
 
 	/*
 	 * data to be displayed 'X' == 0101 1000 == 0x05 0x08
-	 * this should eventually be done by the calling function
-	 * (function call has to be done from interrupt context)
 	 * LOWER byte has to be pushed FIRST
 	 */
 	ldi r25,0x08
 	push r25
 	ldi r25,0x05
 	push r25
+	rcall print_char
+
+
+	/*##################### toggle led for confirmation #####################*/
+	ldi r25,BIT_PB2
+	push r25
+	rcall toggler
+
+	/* pop all the registers in reverse order */
+	pop r24
+	pop r23
+	pop r20
+	pop r19
+	pop r18
+	pop r0
+	/* stack size = 0 */
+
+	out __SREG__,r0 /* restore sreg */
+	reti
+
+
+
+
+/******************************** FUNCTIONS ********************************/
+toggler:
+	/* temporary take ret addr from stack to access parameters */
+	pop r18
+	pop r19
+
+	/* function parameters */
+	pop r27
+
+	/* toggle led */
+	in r24,PORTB
+	eor r24,r27 		/* XOR */
+	out PORTB,r24
+
+	/* debounce delay */
+	ldi r18,lo8(189999)
+	ldi r19,hi8(189999)
+	ldi r20,hlo8(189999)
+wait6:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne wait6
+
+	/* put ret addr back onto the stack */
+	push r19
+	push r18
+	ret
+
+print_char:
+	/* temporary take ret addr from stack to access parameters */
+	pop r18
+	pop r19
+
+	/* function parameters */
+	pop r25			/* get payload from stack */
+	pop r26			/* get payload from stack */
 
 	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
 	in r24,PORTA
@@ -245,7 +296,6 @@ vector_lcd:
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
-	pop r25			/* get payload from stack */
 	or r24,r25 		/* write payload from r25 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
@@ -275,7 +325,6 @@ wait3:
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
-	pop r26			/* get payload from stack */
 	or r24,r26 		/* write payload from r26 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
@@ -299,31 +348,7 @@ wait5:
 	subi r18,1
 	brne wait5
 
-
-	/*##################### toggle led for confirmation #####################*/
-	in r24,PORTB
-	ldi r25,BIT_PB2
-	eor r24,r25 		/* XOR */
-	out PORTB,r24
-
-	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r19,hi8(189999)
-	ldi r20,hlo8(189999)
-wait6:
-	subi r18,1
-	sbci r19,0
-	sbci r20,0
-	brne wait6
-
-	/* pop all the registers in reverse order */
-	pop r24
-	pop r23
-	pop r20
-	pop r19
-	pop r18
-	pop r0
-	/* stack size = 0 */
-
-	out __SREG__,r0 /* restore sreg */
-	reti
+	/* put ret addr back onto the stack */
+	push r19
+	push r18
+	ret
