@@ -178,20 +178,9 @@ vector_0:
 	/* stack size = 6 */
 
 	/* toggle led */
-	in r24,PORTB
-	ldi r25,BIT_PB1
-	eor r24,r25 		/* XOR */
-	out PORTB,r24
-
-	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r24,hi8(189999)
-	ldi r25,hlo8(189999)
-wait0:
-	subi r18,1
-	sbci r24,0		/* Subtract with Carry */
-	sbci r25,0		/* Subtract with Carry */
-	brne wait0
+	ldi r24,BIT_PB1
+	push r24
+	rcall toggler
 
 	/* pop all the registers in reverse order */
 	pop r24
@@ -221,16 +210,6 @@ vector_1:
 	push r24
 	rcall toggler
 
-	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r24,hi8(189999)
-	ldi r25,hlo8(189999)
-wait1:
-	subi r18,1
-	sbci r24,0		/* Subtract with Carry */
-	sbci r25,0		/* Subtract with Carry */
-	brne wait1
-
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
@@ -252,7 +231,17 @@ toggler:
 	in r24,PORTB
 	eor r24,r27 		/* XOR */
 	out PORTB,r24
-	
+
+	/* debounce delay */
+	ldi r18,lo8(189999)
+	ldi r24,hi8(189999)
+	ldi r25,hlo8(189999)
+wait1:
+	subi r18,1
+	sbci r24,0		/* Subtract with Carry */
+	sbci r25,0		/* Subtract with Carry */
+	brne wait1
+
 	push r19
 	push r18
 	ret
