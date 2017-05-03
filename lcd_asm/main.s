@@ -99,6 +99,10 @@ BIT_PD7 = 0x80
 BIT_INT0 = 0x40
 BIT_INT1 = 0x80
 
+#Mem Adresses
+__SP_H__ = 0x3e
+__SP_L__ = 0x3d
+
 
 /************************* interrupt vector table *************************/
 .org 0x00
@@ -113,7 +117,12 @@ BIT_INT1 = 0x80
 /********************************** setup **********************************/
 .org 0x30
 main:
-	/* stack size = 0 */
+	/* setup stack pointer */
+	in r28,__SP_L__
+	in r29,__SP_H__
+	out __SP_H__,r29
+	out __SP_L__,r28
+
 
 	/* LCD: set data pins as outputn and low (def value) */
 	ldi r24,0xFF 	/* PA0 - PA7 */
@@ -215,9 +224,16 @@ vector_lcd:
 	/* stack size = 6 [6 push commands] */
 
 
-	/* data to be displayed 'X' == 0101 1000 == 0x05 0x08 */
+	/*
+	 * data to be displayed 'X' == 0101 1000 == 0x05 0x08
+	 * this should eventually be done by the calling function
+	 * (function call has to be done from interrupt context)
+	 * LOWER byte has to be pushed FIRST
+	 */
+	ldi r25,0x08
+	push r25
 	ldi r25,0x05
-	ldi r26,0x08
+	push r25
 
 	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
 	in r24,PORTA
@@ -230,6 +246,7 @@ vector_lcd:
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
+	pop r25			/* get payload from stack */
 	or r24,r25 		/* write payload from r25 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
@@ -259,7 +276,8 @@ wait3:
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
-	or r24,r25 		/* write payload from r25 */
+	pop r26			/* get payload from stack */
+	or r24,r26 		/* write payload from r26 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
 	ori r24, BIT_PA5 	/* EN pin high */
