@@ -266,12 +266,23 @@ vector_lcd:
 
 /******************************** FUNCTIONS ********************************/
 toggler:
-	/* temporary take ret addr from stack to access parameters */
-	pop r18
-	pop r19
+	/* Calculate parameter position in STACK in SRAM
+	 *
+	 * SP points to first unused STACK addr,
+	 * the last two stack elements are the return addr,
+	 * so the parameter lies at MEM[SP+3]
+	 *
+	 * stack grows towards lower addr
+	 * avr has no addi instr so use subi
+	 *
+	 * Addr Register: Z = [R31, R30]
+	 */
+	in r30,SP_L
+	in r31,SP_H
+	subi r30,lo8(-3)
 
-	/* function parameters */
-	pop r27
+	/* get parameter from stack */
+	ld r27, Z
 
 	/* toggle led */
 	in r24,PORTB
@@ -288,9 +299,6 @@ wait6:
 	sbci r20,0
 	brne wait6
 
-	/* put ret addr back onto the stack */
-	push r19
-	push r18
 	ret
 
 print_char:
