@@ -14,7 +14,7 @@
 
 
 DEVICE     = atmega16
-CLOCK      = 8000000
+CLOCK      = 16000000
 
 PROGRAMMER = arduino
 PORT = /dev/ttyUSB0

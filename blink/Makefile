@@ -14,7 +14,7 @@
 
 
 DEVICE     = atmega16
-CLOCK      = 8000000
+CLOCK      = 16000000
 
 PROGRAMMER = arduino
 PORT = /dev/ttyUSB0
@@ -28,8 +28,12 @@ SRC = $(TARGET).c
 OBJECTS = $(SRC:.c=.o)
 
 
-LFUSE      = 0x64
-HFUSE      = 0xD1
+#LFUSE      = 0x64
+#HFUSE      = 0xD1
+
+#ext 16Mhz Crystal
+LFUSE      = 0xBF
+HFUSE      = 0xC9
 FUSES      = -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m
 
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
