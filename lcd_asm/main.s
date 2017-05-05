@@ -99,9 +99,13 @@ BIT_PD7 = 0x80
 BIT_INT0 = 0x40
 BIT_INT1 = 0x80
 
-#Mem Adresses
-__SP_H__ = 0x3e
-__SP_L__ = 0x3d
+#Stack pointer registers
+SP_H = 0x3e
+SP_L = 0x3d
+
+#memory locations
+RAMEND_H = 0x04
+RAMEND_L = 0x5F
 
 /**
  * Timings
@@ -131,10 +135,10 @@ __SP_L__ = 0x3d
 .org 0x30
 main:
 	/* setup stack pointer */
-	in r28,__SP_L__
-	in r29,__SP_H__
-	out __SP_H__,r29
-	out __SP_L__,r28
+	ldi r28,RAMEND_L
+	out SP_L,r28
+	ldi r28,RAMEND_H
+	out SP_H,r28
 
 
 	/* LCD: set data pins as outputn and low (def value) */
