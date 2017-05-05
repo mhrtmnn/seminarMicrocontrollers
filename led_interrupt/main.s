@@ -151,9 +151,9 @@ main:
 /******************************** main loop  ********************************/
 main_loop:
 	/* load counter */
-	ldi r18,lo8(1999999)
-	ldi r19,hi8(1999999)
-	ldi r20,hlo8(1999999)
+	ldi r18,lo8(4000000)
+	ldi r19,hi8(4000000)
+	ldi r20,hlo8(4000000)
 
 main_wait:
 	subi r18,1
@@ -226,9 +226,23 @@ vector_1:
 	reti
 
 toggler:
-	pop r18
-	pop r19
-	pop r27
+	/* Calculate parameter position in STACK in SRAM
+	 *
+	 * SP points to first unused STACK addr,
+	 * the last two stack elements are the return addr,
+	 * so the parameter lies at MEM[SP+3]
+	 *
+	 * stack grows towards lower addr
+	 * avr has no addi instr so use subi
+	 *
+	 * Addr Register: Z = [R31, R30]
+	 */
+	in r30,SP_L
+	in r31,SP_H
+	subi r30,lo8(-3)
+
+	/* get parameter from stack */
+	ld r27, Z
 
 	/* toggle led */
 	in r24,PORTB
@@ -236,15 +250,13 @@ toggler:
 	out PORTB,r24
 
 	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r24,hi8(189999)
-	ldi r25,hlo8(189999)
+	ldi r18,lo8(380000)
+	ldi r24,hi8(380000)
+	ldi r25,hlo8(380000)
 wait1:
 	subi r18,1
 	sbci r24,0		/* Subtract with Carry */
 	sbci r25,0		/* Subtract with Carry */
 	brne wait1
 
-	push r19
-	push r18
 	ret
