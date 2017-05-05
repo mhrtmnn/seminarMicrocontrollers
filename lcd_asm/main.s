@@ -103,10 +103,23 @@ BIT_INT1 = 0x80
 __SP_H__ = 0x3e
 __SP_L__ = 0x3d
 
+/**
+ * Timings
+ * @16MHz: 1 cycle = 6.25e-08 =: C
+ * desired delay in s =: D
+ * constant to load into reg =: T
+ *
+ * subi takes 1 cycle
+ * brne takes 2 cycles if taken, 1 if not
+ * for n subi instr: D = (n+2)*C*(T-1) + (n+1)*C
+ *
+ * Python function:
+ * def f (n, D): return int(1 + (D - (n+1)*6.25e-08)/(6.25e-08*(n+2)))
+ */
 
 /************************* interrupt vector table *************************/
 .org 0x00
-	rjmp main 			/* reset */
+	rjmp main 		/* reset */
 	reti
 	rjmp vector_0 		/* INT0 */
 	reti
@@ -140,7 +153,7 @@ main:
 	ori r24,BIT_INT1 	/* enable INT1 = BIT(8) */
 	out GICR,r24
 
-	/* 
+	/*
 	 * The CBI and SBI instructions work with registers $00 to $1F only
 	 * they clear/set the specified bit
 	 */
