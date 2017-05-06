@@ -343,10 +343,10 @@ print_char:
 	out PORTA,r24
 
 	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-wait2:
 	ldi r18,lo8(64)
+print_char_wait0:
 	subi r18,1
-	brne wait2
+	brne print_char_wait0
 
 	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
 	in r24,PORTA
@@ -354,10 +354,10 @@ wait2:
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-wait3:
 	ldi r18,lo8(148)
+print_char_wait1:
 	subi r18,1
-	brne wait3
+	brne print_char_wait1
 
 	/*######################### lower 4bit #########################*/
 
@@ -372,10 +372,10 @@ wait3:
 	out PORTA,r24
 
 	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-wait4:
 	ldi r18,lo8(64)
+print_char_wait2:
 	subi r18,1
-	brne wait4
+	brne print_char_wait2
 
 	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
 	in r24,PORTA
@@ -383,9 +383,9 @@ wait4:
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-wait5:
 	ldi r18,lo8(148)
+print_char_wait3:
 	subi r18,1
-	brne wait5
+	brne print_char_wait3
 
 	ret
