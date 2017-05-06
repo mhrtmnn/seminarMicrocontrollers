@@ -500,15 +500,12 @@ init_del4:
 	 *  = 0x20 | 0x00 | 0x08 | 0x00 = 0x28
 	 * LOWER byte has to be pushed FIRST
 	 */
-	ldi r25,0x08
-	push r25
-	ldi r25,0x02
+	ldi r25,0x28
 	push r25
 
 	rcall send_command_word
 
 	/* take parameters from stack */
-	pop r25
 	pop r25
 
 
@@ -520,13 +517,10 @@ init_del4:
 	 */
 	ldi r25,0x0E
 	push r25
-	ldi r25,0x00
-	push r25
 
 	rcall send_command_word
 
 	/* take parameters from stack */
-	pop r25
 	pop r25
 
 
@@ -538,13 +532,10 @@ init_del4:
 	 */
 	ldi r25,0x06
 	push r25
-	ldi r25,0x00
-	push r25
 
 	rcall send_command_word
 
 	/* take parameters from stack */
-	pop r25
 	pop r25
 
 
@@ -555,13 +546,10 @@ init_del4:
 	 */
 	ldi r25,0x01
 	push r25
-	ldi r25,0x00
-	push r25
 
 	rcall send_command_word
 
 	/* take parameters from stack */
-	pop r25
 	pop r25
 
 
@@ -585,12 +573,21 @@ send_command_word:
 	in r30,SP_L
 	in r31,SP_H
 
-	/* load first parameter */
+	/* load parameter */
 	subi r30,lo8(-3)
-	ld r26, Z+		/* post increment */
+	ld r26, Z
 
-	/* load second parameter */
-	ld r27, Z
+	/* duplicate register */
+	mov r27,r26
+
+	/* upper 4 bits in r26[3:0]: shift 4 to right */
+	lsr r26
+	lsr r26
+	lsr r26
+	lsr r26
+
+	/* lower 4 bits in r27[3:0]: mask upper 4 bit */
+	andi r27,0x0F
 
 	/* indicate command word (RS = 0) */
 	in r24,PORTA
