@@ -195,8 +195,8 @@ main:
 	 * The CBI and SBI instructions work with registers $00 to $1F only
 	 * they clear/set the specified bit
 	 */
-	sbi PORTD,PD2 		/* enable PD2 in PORTD */
-	sbi PORTD,PD3 		/* enable PD3 in PORTD */
+	sbi PORTD,PD2 		/* Enable PD2 pull-up resistor */
+	sbi PORTD,PD3 		/* Enable PD3 pull-up resistor */
 
 	sei 			/*enable interrupts */
 
@@ -226,7 +226,8 @@ main_wait:
 
 /******************************** ISR for INT0 ********************************/
 vector_0:
-	in r0,__SREG__ 		/* save status reg to r0 */
+	/* save status reg to r0 */
+	in r0,__SREG__
 	push r0
 	push r18
 	push r19
@@ -267,7 +268,8 @@ v0_deb_del:
 
 /******************************** ISR for INT1 ********************************/
 vector_lcd:
-	in r0,__SREG__ 		/* save status reg to r0 */
+	/* save status reg to r0 */
+	in r0,__SREG__
 	push r0
 	push r18
 	push r19
@@ -315,7 +317,8 @@ v1_deb_del:
 	pop r18
 	pop r0
 
-	out __SREG__,r0 	/* restore sreg */
+	/* restore sreg */
+	out __SREG__,r0
 	reti
 
 
