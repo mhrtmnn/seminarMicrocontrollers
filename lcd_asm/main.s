@@ -220,7 +220,7 @@ main_wait:
 	/* toggle led */
 	in r24,PORTB
 	ldi r23,BIT_PB0
-	eor r24,r23 	/* XOR */
+	eor r24,r23 		/* XOR */
 	out PORTB,r24
 	rjmp main_loop
 
@@ -240,6 +240,7 @@ vector_0:
 	/* toggle led */
 	ldi r24,BIT_PB1
 	push r24
+
 	rcall toggler
 
 	/* take variable from stack after function call */
@@ -265,8 +266,6 @@ v0_deb_del:
 	/* restore sreg */
 	out __SREG__,r0
 	reti
-
-
 
 
 /******************************** ISR for INT1 ********************************/
@@ -376,7 +375,7 @@ print_char:
 	/* load second parameter */
 	ld r26, Z
 
-	/* indicate command word (RS = 1) */
+	/* indicate data word (RS = 1) */
 	in r24,PORTA
 	ori r24,BIT_PA4
 	out PORTA,r24
@@ -475,6 +474,7 @@ init_del6:
 
 	/* send: LCD_SET_FUNCTION | LCD_FUNCTION_4BIT = 0x20 | 0x00 = 0x20 */
 	ldi r26, 0x02
+
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
@@ -611,6 +611,7 @@ send_command_word:
 	rcall lcd_enable
 
 	ret
+
 
 /**
  * Helper function for lcd enable
