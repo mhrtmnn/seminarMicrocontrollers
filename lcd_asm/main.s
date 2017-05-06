@@ -98,6 +98,7 @@ BIT_PD7 = 0x80
 
 BIT_INT0 = 0x40
 BIT_INT1 = 0x80
+BIT_INT2 = 0x20
 
 #Stack pointer registers
 SP_H = 0x3e
@@ -123,16 +124,51 @@ RAMEND_L = 0x5F
 
 /************************* interrupt vector table *************************/
 .org 0x00
-	rjmp main 		/* reset */
-	reti
-	rjmp vector_0 		/* INT0 */
-	reti
-	rjmp vector_lcd		/* INT1 */
-	reti
+	rjmp main 		/* $00 = 0x00: reset 		*/
+.org 0x04
+	rjmp vector_0 		/* $02 = 0x04: INT0 		*/
+.org 0x08
+	rjmp vector_lcd		/* $04 = 0x08: INT1 		*/
+.org 0x0C
+	reti			/* $06 = 0x0C: TIMER2 COMP 	*/
+.org 0x10
+	reti			/* $08 = 0x10: TIMER2 OVF 	*/
+.org 0x14
+	reti			/* $0A = 0x14: TIMER1 CAPT 	*/
+.org 0x18
+	reti			/* $0C = 0x18: TIMER1 COMPA 	*/
+.org 0x1C
+	reti			/* $0E = 0x1C: TIMER1 COMPB 	*/
+.org 0x20
+	reti			/* $10 = 0x20: TIMER1 OVF 	*/
+.org 0x24
+	reti			/* $12 = 0x24: TIMER0 OVF 	*/
+.org 0x28
+	reti			/* $14 = 0x28: SPI, STC 	*/
+.org 0x2C
+	reti			/* $16 = 0x2C: USART, RXC 	*/
+.org 0x30
+	reti			/* $18 = 0x30: USART, UDRE 	*/
+.org 0x34
+	reti			/* $1A = 0x34: USART, TXC 	*/
+.org 0x38
+	reti			/* $1C = 0x38: ADC 		*/
+.org 0x3C
+	reti			/* $1E = 0x3C: EE_RDY 		*/
+.org 0x40
+	reti			/* $20 = 0x40: ANA_COMP 	*/
+.org 0x44
+	reti			/* $22 = 0x44: TWI 		*/
+.org 0x48
+	reti			/* $24 = 0x48: INT2 		*/
+.org 0x4C
+	reti			/* $26 = 0x4C: TIMER0 COMP 	*/
+.org 0x50
+	reti			/* $28 = 0x50: SPM_RDY 		*/
 
 
 /********************************** setup **********************************/
-.org 0x30
+.org 0x54
 main:
 	/* setup stack pointer */
 	ldi r24,RAMEND_L
