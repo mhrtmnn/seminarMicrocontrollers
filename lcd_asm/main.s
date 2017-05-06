@@ -441,10 +441,10 @@ init_del0:
 	/* Reset delay 5ms == 20000cycles */
 	ldi r18,lo8(20000)
 	ldi r19,hi8(20000)
-init_del2:
+init_del1:
 	subi r18,1
 	sbci r19,0
-	brne init_del2
+	brne init_del1
 
 	/*######################### RESET 2 #########################*/
 
@@ -453,10 +453,10 @@ init_del2:
 	/* Reset delay 1ms == 4000cycles */
 	ldi r18,lo8(4000)
 	ldi r19,hi8(4000)
-init_del4:
+init_del2:
 	subi r18,1
 	sbci r19,0
-	brne init_del4
+	brne init_del2
 
 	/*######################### RESET 3 #########################*/
 
@@ -465,10 +465,10 @@ init_del4:
 	/* Reset delay 1ms == 4000cycles */
 	ldi r18,lo8(4000)
 	ldi r19,hi8(4000)
-init_del6:
+init_del3:
 	subi r18,1
 	sbci r19,0
-	brne init_del6
+	brne init_del3
 
 	/*######################### SET 4BIT MODE #########################*/
 
@@ -485,10 +485,10 @@ init_del6:
 	/* 4bit mode setup delay 5ms == 20000cycles */
 	ldi r18,lo8(20000)
 	ldi r19,hi8(20000)
-init_del8:
+init_del4:
 	subi r18,1
 	sbci r19,0
-	brne init_del8
+	brne init_del4
 
 
 	/*################# COMMAND: 4-bit Mode / 2 Lines / 5x7 #################*/
@@ -565,10 +565,10 @@ init_del8:
 	/* lcd clear delay 2ms = 8000cycles */
 	ldi r18,lo8(8000)
 	ldi r19,hi8(8000)
-init_del17:
+init_del5:
 	subi r18,1
 	sbci r19,0
-	brne init_del17
+	brne init_del5
 
 	ret
 
