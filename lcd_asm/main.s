@@ -457,21 +457,13 @@ init_del0:
 
 	/* send: LCD_SOFT_RESET = 0x30 */
 	ldi r26, 0x03
+
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/* EN delay 20µs = 107cycles */
-	ldi r18,lo8(107)
-init_del1:
-	subi r18,1
-	brne init_del1
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	/* Reset delay 5ms == 20000cycles */
 	ldi r18,lo8(20000)
@@ -483,19 +475,7 @@ init_del2:
 
 	/*######################### RESET 2 #########################*/
 
-	in r24,PORTA
-	ori r24, BIT_PA5 	/* EN pin high */
-	out PORTA,r24
-
-	/* EN delay 20µs = 107cycles */
-	ldi r18,lo8(107)
-init_del3:
-	subi r18,1
-	brne init_del3
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	/* Reset delay 1ms == 4000cycles */
 	ldi r18,lo8(4000)
@@ -507,19 +487,7 @@ init_del4:
 
 	/*######################### RESET 3 #########################*/
 
-	in r24,PORTA
-	ori r24, BIT_PA5 	/* EN pin high */
-	out PORTA,r24
-
-	/* EN delay */
-	ldi r18,lo8(107)
-init_del5:
-	subi r18,1
-	brne init_del5
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	/* Reset delay 1ms == 4000cycles */
 	ldi r18,lo8(4000)
@@ -536,18 +504,9 @@ init_del6:
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/* EN delay */
-	ldi r18,lo8(107)
-init_del7:
-	subi r18,1
-	brne init_del7
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	/* 4bit mode setup delay 5ms == 20000cycles */
 	ldi r18,lo8(20000)
@@ -666,36 +625,17 @@ send_command_word:
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/* EN delay */
-	ldi r18,lo8(107)
-init_del9:
-	subi r18,1
-	brne init_del9
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
-
+	rcall lcd_enable
 
 	/***** lower 4 bit *****/
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r27 		/* write payload from r27 */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/* EN delay */
-	ldi r18,lo8(107)
-init_del10:
-	subi r18,1
-	brne init_del10
-
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	ret
 
