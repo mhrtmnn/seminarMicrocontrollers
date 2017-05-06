@@ -185,6 +185,9 @@ main:
 	out DDRB,r24
 	out PORTB,r24
 
+	/* initialize the LC-Display */
+	rcall lcd_init
+
 	/* setup interrupts */
 	in r24,GICR
 	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) */
