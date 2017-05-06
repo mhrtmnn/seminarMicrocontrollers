@@ -388,8 +388,8 @@ print_char:
 	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(64)
+	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
+	ldi r18,lo8(107)
 print_char_wait0:
 	subi r18,1
 	brne print_char_wait0
@@ -417,8 +417,8 @@ print_char_wait1:
 	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(64)
+	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
+	ldi r18,lo8(107)
 print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
