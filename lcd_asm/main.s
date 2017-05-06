@@ -343,8 +343,8 @@ print_char:
 	out PORTA,r24
 
 	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(32)
 wait2:
+	ldi r18,lo8(64)
 	subi r18,1
 	brne wait2
 
@@ -354,8 +354,8 @@ wait2:
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-	ldi r18,lo8(74)
 wait3:
+	ldi r18,lo8(148)
 	subi r18,1
 	brne wait3
 
@@ -372,8 +372,8 @@ wait3:
 	out PORTA,r24
 
 	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(32)
 wait4:
+	ldi r18,lo8(64)
 	subi r18,1
 	brne wait4
 
@@ -383,8 +383,8 @@ wait4:
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-	ldi r18,lo8(74)
 wait5:
+	ldi r18,lo8(148)
 	subi r18,1
 	brne wait5
 
