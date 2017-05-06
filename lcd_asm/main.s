@@ -176,7 +176,7 @@ main:
 	ldi r24,RAMEND_H
 	out SP_H,r24
 
-	/* LCD: set data pins as outputn and low (def value) */
+	/* LCD: set data pins as output and low (def value) */
 	ldi r24,0xFF 		/* PA0 - PA7 */
 	out DDRA,r24
 
@@ -201,7 +201,7 @@ main:
 	sbi PORTD,PD2 		/* Enable PD2 pull-up resistor */
 	sbi PORTD,PD3 		/* Enable PD3 pull-up resistor */
 
-	sei 			/*enable interrupts */
+	sei 			/* enable interrupts */
 
 
 /******************************** main loop  ********************************/
@@ -288,6 +288,7 @@ vector_lcd:
 	push r25
 	ldi r25,0x05
 	push r25
+
 	rcall print_char
 
 	/* take variables from stack after function call */
@@ -297,6 +298,7 @@ vector_lcd:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
+
 	rcall toggler
 
 	/* take variable from stack after function call */
@@ -374,15 +376,13 @@ print_char:
 	/* load second parameter */
 	ld r26, Z
 
-	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
+	/* indicate command word (RS = 1) */
 	in r24,PORTA
 	ori r24,BIT_PA4
 	out PORTA,r24
 
 	/*######################### upper 4bit #########################*/
 
-	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
-	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r25 		/* write payload from r25 */
@@ -390,16 +390,14 @@ print_char:
 
 	rcall lcd_enable
 
-	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-	ldi r18,lo8(148)
+	/* writedata delay 46µs =  184 */
+	ldi r18,lo8(184)
 print_char_wait1:
 	subi r18,1
 	brne print_char_wait1
 
 	/*######################### lower 4bit #########################*/
 
-	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
-	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
@@ -407,15 +405,11 @@ print_char_wait1:
 
 	rcall lcd_enable
 
+	/* writedata delay 46µs =  184 */
+	ldi r18,lo8(184)
 print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
-
-	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
-	ldi r18,lo8(148)
-print_char_wait3:
-	subi r18,1
-	brne print_char_wait3
 
 	ret
 
@@ -554,8 +548,8 @@ init_del8:
 	/*###################### COMMAND: LCD_CLEAR_DISPLAY ######################*/
 
 	/* send: LCD_CLEAR_DISPLAY =  0x01
-	* LOWER byte has to be pushed FIRST
-	*/
+	 * LOWER byte has to be pushed FIRST
+	 */
 	ldi r25,0x01
 	push r25
 	ldi r25,0x00
@@ -595,13 +589,12 @@ send_command_word:
 	/* load second parameter */
 	ld r27, Z
 
-	/***** upper 4 bit *****/
-
-	/* indicate command word */
+	/* indicate command word (RS = 0) */
 	in r24,PORTA
 	andi r24,0xEF 		/*1110 1111 -> RS pin low (command word)*/
 	out PORTA,r24
 
+	/*###################### UPPER 4 BIT ######################*/
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
@@ -609,7 +602,7 @@ send_command_word:
 
 	rcall lcd_enable
 
-	/***** lower 4 bit *****/
+	/*###################### LOWER 4 BIT ######################*/
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r27 		/* write payload from r27 */
@@ -621,6 +614,7 @@ send_command_word:
 
 /**
  * Helper function for lcd enable
+ * turn on the EN pin, wait 20µs, and turn off again
  */
 lcd_enable:
 	in r24,PORTA
