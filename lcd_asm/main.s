@@ -195,7 +195,6 @@ vector_0:
 	push r18
 	push r19
 	push r20
-	push r23
 	push r24
 
 	/* toggle led */
@@ -218,7 +217,6 @@ v0_deb_del:
 
 	/* pop all the registers in reverse order */
 	pop r24
-	pop r23
 	pop r20
 	pop r19
 	pop r18
