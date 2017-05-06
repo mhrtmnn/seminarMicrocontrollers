@@ -319,10 +319,9 @@ print_char:
 
 	/* load first parameter */
 	subi r30,lo8(-3)
-	ld r25, Z
+	ld r25, Z+		/* post increment */
 
 	/* load second parameter */
-	subi r30,lo8(-1)
 	ld r26, Z
 
 	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
