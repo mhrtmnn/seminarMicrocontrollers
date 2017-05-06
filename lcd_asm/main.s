@@ -386,21 +386,9 @@ print_char:
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r25 		/* write payload from r25 */
-
-	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
-	ldi r18,lo8(107)
-print_char_wait0:
-	subi r18,1
-	brne print_char_wait0
-
-	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
+	rcall lcd_enable
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
 	ldi r18,lo8(148)
@@ -415,21 +403,13 @@ print_char_wait1:
 	in r24,PORTA
 	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
-
-	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
-	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
-	ldi r18,lo8(107)
+	rcall lcd_enable
+
 print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
-
-	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
-	in r24,PORTA
-	andi r24,0xDF 		/*1101 1111 -> EN pin low */
-	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
 	ldi r18,lo8(148)
