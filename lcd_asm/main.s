@@ -325,6 +325,10 @@ v1_deb_del:
 
 
 /******************************** FUNCTIONS ********************************/
+/**
+ * toggle specified led at PORTB
+ * @type pin is given by parameter on STACK
+ */
 toggler:
 	/* Calculate parameter position in STACK in SRAM
 	 *
@@ -351,6 +355,10 @@ toggler:
 
 	ret
 
+/**
+ * print specified byte on LCD
+ * @type byte is given by upper 4bit and lower 4bit as parameters on STACK
+ */
 print_char:
 	/* get function parameters from stack */
 	in r30,SP_L
