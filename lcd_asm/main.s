@@ -279,13 +279,32 @@ vector_lcd:
 	push r23
 	push r24
 
-	/* data to be displayed 'X' == 0101 1000 == 0x58 */
-	ldi r25,0x58
+	; /* data to be displayed 'X' == 0101 1000 == 0x58 */
+	; ldi r25,0x58
+	; push r25
+	;
+	; rcall print_char
+	;
+	; /* take variable from stack after function call */
+	; pop r25
+
+	/* "Test" = 0x54 0x65 0x73 0x74 */
+	ldi r25,0x74
 	push r25
-
+	ldi r25,0x73
+	push r25
+	ldi r25,0x65
+	push r25
+	ldi r25,0x54
+	push r25
+	
 	rcall print_char
-
-	/* take variable from stack after function call */
+	pop r25
+	rcall print_char
+	pop r25
+	rcall print_char
+	pop r25
+	rcall print_char
 	pop r25
 
 	/*##################### toggle led for confirmation #####################*/
