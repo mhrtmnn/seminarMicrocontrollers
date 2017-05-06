@@ -698,3 +698,23 @@ init_del10:
 	out PORTA,r24
 
 	ret
+
+/**
+ * Helper function for lcd enable
+ */
+lcd_enable:
+	in r24,PORTA
+	ori r24, BIT_PA5 	/* EN pin high */
+	out PORTA,r24
+
+	/* EN delay 20µs = 107cycles */
+	ldi r18,lo8(107)
+lcd_enable_delay:
+	subi r18,1
+	brne lcd_enable_delay
+
+	in r24,PORTA
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
+	out PORTA,r24
+
+	ret
