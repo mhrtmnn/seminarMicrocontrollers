@@ -206,6 +206,9 @@ vector_0:
 	push r24
 	rcall toggler
 
+	/* take variable from stack after function call */
+	pop r24
+
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
@@ -251,6 +254,9 @@ vector_lcd:
 	ldi r25,BIT_PB2
 	push r25
 	rcall toggler
+
+	/* take variable from stack after function call */
+	pop r25
 
 	/* pop all the registers in reverse order */
 	pop r24
