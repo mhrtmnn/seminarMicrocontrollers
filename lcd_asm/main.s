@@ -279,19 +279,13 @@ vector_lcd:
 	push r23
 	push r24
 
-	/*
-	 * data to be displayed 'X' == 0101 1000 == 0x05 0x08
-	 * LOWER byte has to be pushed FIRST
-	 */
-	ldi r25,0x08
-	push r25
-	ldi r25,0x05
+	/* data to be displayed 'X' == 0101 1000 == 0x58 */
+	ldi r25,0x58
 	push r25
 
 	rcall print_char
 
-	/* take variables from stack after function call */
-	pop r25
+	/* take variable from stack after function call */
 	pop r25
 
 	/*##################### toggle led for confirmation #####################*/
@@ -368,12 +362,21 @@ print_char:
 	in r30,SP_L
 	in r31,SP_H
 
-	/* load first parameter */
+	/* load parameter */
 	subi r30,lo8(-3)
-	ld r25, Z+		/* post increment */
+	ld r25, Z
 
-	/* load second parameter */
-	ld r26, Z
+	/* duplicate register */
+	mov r26,r25
+
+	/* upper 4 bits in r25[3:0]: shift 4 to right */
+	lsr r25
+	lsr r25
+	lsr r25
+	lsr r25
+
+	/* lower 4 bits in r26[3:0]: mask upper 4 bit */
+	andi r26,0x0F
 
 	/* indicate data word (RS = 1) */
 	in r24,PORTA
