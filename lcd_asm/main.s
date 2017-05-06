@@ -141,12 +141,11 @@ main:
 	out SP_H,r24
 
 	/* LCD: set data pins as outputn and low (def value) */
-	ldi r24,0xFF 	/* PA0 - PA7 */
+	ldi r24,0xFF 		/* PA0 - PA7 */
 	out DDRA,r24
 
-
 	/* LEDs: set PB0 - PB2 as output and set them high */
-	ldi r24,0x07 	/* PB0 - PB2 */
+	ldi r24,0x07 		/* PB0 - PB2 */
 	out DDRB,r24
 	out PORTB,r24
 
@@ -163,15 +162,15 @@ main:
 	sbi PORTD,PD2 		/* enable PD2 in PORTD */
 	sbi PORTD,PD3 		/* enable PD3 in PORTD */
 
-	sei 				/*enable interrupts */
+	sei 			/*enable interrupts */
 
 
 /******************************** main loop  ********************************/
 main_loop:
 	/* load counter */
-	ldi r18,lo8(1999999)
-	ldi r19,hi8(1999999)
-	ldi r20,hlo8(1999999)
+	ldi r18,lo8(2000000)
+	ldi r19,hi8(2000000)
+	ldi r20,hlo8(2000000)
 
 main_wait:
 	subi r18,1
@@ -198,7 +197,6 @@ vector_0:
 	push r20
 	push r23
 	push r24
-	/* stack size = 6 */
 
 	/* toggle led */
 	ldi r24,BIT_PB1
@@ -225,9 +223,9 @@ v0_deb_del:
 	pop r19
 	pop r18
 	pop r0
-	/* stack size = 0 */
 
-	out __SREG__,r0 /* restore sreg */
+	/* restore sreg */
+	out __SREG__,r0
 	reti
 
 
@@ -235,15 +233,13 @@ v0_deb_del:
 
 /******************************** ISR for INT1 ********************************/
 vector_lcd:
-	in r0,__SREG__ /* save status reg to r0 */
+	in r0,__SREG__ 		/* save status reg to r0 */
 	push r0
 	push r18
 	push r19
 	push r20
 	push r23
 	push r24
-	/* stack size = 6 [6 push commands] */
-
 
 	/*
 	 * data to be displayed 'X' == 0101 1000 == 0x05 0x08
@@ -284,9 +280,8 @@ v1_deb_del:
 	pop r19
 	pop r18
 	pop r0
-	/* stack size = 0 */
 
-	out __SREG__,r0 /* restore sreg */
+	out __SREG__,r0 	/* restore sreg */
 	reti
 
 
@@ -342,7 +337,7 @@ print_char:
 	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
-	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r25 		/* write payload from r25 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
@@ -357,7 +352,7 @@ wait2:
 
 	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
 	in r24,PORTA
-	andi r24,0xDF 	/*1101 1111 -> EN pin low */
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
@@ -371,7 +366,7 @@ wait3:
 	/*		PORTA &= ~(0xF0>>(4-PA0));     #Maske löschen (shift out the lower 4 bits, then shift left (neg right shift) to p0) */
 	/*		PORTA |= (data>>(4-PA0));      #Bits setzen */
 	in r24,PORTA
-	andi r24,0xF0 	/* 1111 0000 -> clear lower 4 bits*/
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
 	or r24,r26 		/* write payload from r26 */
 
 	/*	PORTA |= (1<<PA5);     #Enable auf 1 setzen */
@@ -386,7 +381,7 @@ wait4:
 
 	/*		PORTA &= ~(1<<PA5);    #Enable auf 0 setzen */
 	in r24,PORTA
-	andi r24,0xDF 	/*1101 1111 -> EN pin low */
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
 	out PORTA,r24
 
 	/*		_delay_us(  [46 us == 74cycles]);  # kurze Pause */
