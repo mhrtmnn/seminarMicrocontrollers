@@ -185,6 +185,9 @@ main:
 	out DDRB,r24
 	out PORTB,r24
 
+	/* initialize the LC-Display */
+	rcall lcd_init
+
 	/* setup interrupts */
 	in r24,GICR
 	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) */
@@ -388,8 +391,8 @@ print_char:
 	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(64)
+	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
+	ldi r18,lo8(107)
 print_char_wait0:
 	subi r18,1
 	brne print_char_wait0
@@ -417,8 +420,8 @@ print_char_wait1:
 	ori r24, BIT_PA5 	/* EN pin high */
 	out PORTA,r24
 
-	/*		_delay_us(  [20 us == 32 cycles]);  #kurze Pause */
-	ldi r18,lo8(64)
+	/*		_delay_us(  [20 us == 107 cycles]);  #kurze Pause */
+	ldi r18,lo8(107)
 print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
@@ -433,5 +436,225 @@ print_char_wait2:
 print_char_wait3:
 	subi r18,1
 	brne print_char_wait3
+
+	ret
+
+
+/**
+ * initialize the LC-Display
+ */
+lcd_init:
+
+	/* wait for LCD init [15ms = 60000cycles]
+	ldi r18,lo8(60000)
+	ldi r19,hi8(60000)
+init_del0:
+	subi r18,1
+	sbci r19,0
+	brne init_del0
+
+	/*######################### RESET 1 #########################*/
+
+	/* send: LCD_SOFT_RESET = 0x30 */
+	ldi r26, 0x03
+
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r26 		/* write payload from r26 */
+	out PORTA,r24
+
+	rcall lcd_enable
+
+	/* Reset delay 5ms == 20000cycles */
+	ldi r18,lo8(20000)
+	ldi r19,hi8(20000)
+init_del2:
+	subi r18,1
+	sbci r19,0
+	brne init_del2
+
+	/*######################### RESET 2 #########################*/
+
+	rcall lcd_enable
+
+	/* Reset delay 1ms == 4000cycles */
+	ldi r18,lo8(4000)
+	ldi r19,hi8(4000)
+init_del4:
+	subi r18,1
+	sbci r19,0
+	brne init_del4
+
+	/*######################### RESET 3 #########################*/
+
+	rcall lcd_enable
+
+	/* Reset delay 1ms == 4000cycles */
+	ldi r18,lo8(4000)
+	ldi r19,hi8(4000)
+init_del6:
+	subi r18,1
+	sbci r19,0
+	brne init_del6
+
+	/*######################### SET 4BIT MODE #########################*/
+
+	/* send: LCD_SET_FUNCTION | LCD_FUNCTION_4BIT = 0x20 | 0x00 = 0x20 */
+	ldi r26, 0x02
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r26 		/* write payload from r26 */
+	out PORTA,r24
+
+	rcall lcd_enable
+
+	/* 4bit mode setup delay 5ms == 20000cycles */
+	ldi r18,lo8(20000)
+	ldi r19,hi8(20000)
+init_del8:
+	subi r18,1
+	sbci r19,0
+	brne init_del8
+
+
+	/*################# COMMAND: 4-bit Mode / 2 Lines / 5x7 #################*/
+
+	/* send: LCD_SET_FUNCTION | LCD_FUNCTION_4BIT | LCD_FUNCTION_2LINE | LCD_FUNCTION_5X7
+	 *  = 0x20 | 0x00 | 0x08 | 0x00 = 0x28
+	 * LOWER byte has to be pushed FIRST
+	 */
+	ldi r25,0x08
+	push r25
+	ldi r25,0x02
+	push r25
+
+	rcall send_command_word
+
+	/* take parameters from stack */
+	pop r25
+	pop r25
+
+
+	/*################# COMMAND: Display on / Cursor off / blink off #################*/
+
+	/* send: LCD_SET_DISPLAY | LCD_DISPLAY_ON | LCD_CURSOR_OFF | LCD_BLINKING_OFF
+	 *  = 0x08 | 0x04 | 0x00 | 0x00 = 0x0C
+	 * LOWER byte has to be pushed FIRST
+	 */
+	ldi r25,0x0C
+	push r25
+	ldi r25,0x00
+	push r25
+
+	rcall send_command_word
+
+	/* take parameters from stack */
+	pop r25
+	pop r25
+
+
+	/*################# COMMAND: Cursor increment / no scrolling #################*/
+
+	/* send: LCD_SET_ENTRY | LCD_ENTRY_INCREASE | LCD_ENTRY_NOSHIFT
+	 *  = 0x04 | 0x02 | 0x00 = 0x06
+	 * LOWER byte has to be pushed FIRST
+	 */
+	ldi r25,0x06
+	push r25
+	ldi r25,0x00
+	push r25
+
+	rcall send_command_word
+
+	/* take parameters from stack */
+	pop r25
+	pop r25
+
+
+	/*###################### COMMAND: LCD_CLEAR_DISPLAY ######################*/
+
+	/* send: LCD_CLEAR_DISPLAY =  0x01
+	* LOWER byte has to be pushed FIRST
+	*/
+	ldi r25,0x01
+	push r25
+	ldi r25,0x00
+	push r25
+
+	rcall send_command_word
+
+	/* take parameters from stack */
+	pop r25
+	pop r25
+
+
+	/* lcd clear delay 2ms = 8000cycles */
+	ldi r18,lo8(8000)
+	ldi r19,hi8(8000)
+init_del17:
+	subi r18,1
+	sbci r19,0
+	brne init_del17
+
+	ret
+
+
+/**
+ * send a command word upper and lower 4 bit supplies via parameter on STACK
+ * @type byte is given by upper 4bit and lower 4bit as parameters on STACK
+ */
+send_command_word:
+	/* get function parameters from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	/* load first parameter */
+	subi r30,lo8(-3)
+	ld r26, Z+		/* post increment */
+
+	/* load second parameter */
+	ld r27, Z
+
+	/***** upper 4 bit *****/
+
+	/* indicate command word */
+	in r24,PORTA
+	andi r24,0xEF 		/*1110 1111 -> RS pin low (command word)*/
+	out PORTA,r24
+
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r26 		/* write payload from r26 */
+	out PORTA,r24
+
+	rcall lcd_enable
+
+	/***** lower 4 bit *****/
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r27 		/* write payload from r27 */
+	out PORTA,r24
+
+	rcall lcd_enable
+
+	ret
+
+/**
+ * Helper function for lcd enable
+ */
+lcd_enable:
+	in r24,PORTA
+	ori r24, BIT_PA5 	/* EN pin high */
+	out PORTA,r24
+
+	/* EN delay 20µs = 107cycles */
+	ldi r18,lo8(107)
+lcd_enable_delay:
+	subi r18,1
+	brne lcd_enable_delay
+
+	in r24,PORTA
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
+	out PORTA,r24
 
 	ret
