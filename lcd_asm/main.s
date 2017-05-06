@@ -135,11 +135,10 @@ RAMEND_L = 0x5F
 .org 0x30
 main:
 	/* setup stack pointer */
-	ldi r28,RAMEND_L
-	out SP_L,r28
-	ldi r28,RAMEND_H
-	out SP_H,r28
-
+	ldi r24,RAMEND_L
+	out SP_L,r24
+	ldi r24,RAMEND_H
+	out SP_H,r24
 
 	/* LCD: set data pins as outputn and low (def value) */
 	ldi r24,0xFF 	/* PA0 - PA7 */
