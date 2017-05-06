@@ -208,6 +208,16 @@ vector_0:
 	/* take variable from stack after function call */
 	pop r24
 
+	/* debounce delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+v0_deb_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne v0_deb_del
+
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
@@ -257,6 +267,16 @@ vector_lcd:
 	/* take variable from stack after function call */
 	pop r25
 
+	/* debounce delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+v1_deb_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne v1_deb_del
+
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
@@ -296,16 +316,6 @@ toggler:
 	in r24,PORTB
 	eor r24,r27 		/* XOR */
 	out PORTB,r24
-
-	/* debounce delay */
-	ldi r18,lo8(189999)
-	ldi r19,hi8(189999)
-	ldi r20,hlo8(189999)
-wait6:
-	subi r18,1
-	sbci r19,0
-	sbci r20,0
-	brne wait6
 
 	ret
 
