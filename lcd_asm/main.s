@@ -509,13 +509,13 @@ init_del4:
 	pop r25
 
 
-	/*################# COMMAND: Display on / Cursor off / blink off #################*/
+	/*################# COMMAND: Display on / Cursor on / blink off #################*/
 
-	/* send: LCD_SET_DISPLAY | LCD_DISPLAY_ON | LCD_CURSOR_OFF | LCD_BLINKING_OFF
-	 *  = 0x08 | 0x04 | 0x00 | 0x00 = 0x0C
+	/* send: LCD_SET_DISPLAY | LCD_DISPLAY_ON | LCD_CURSOR_ON | LCD_BLINKING_OFF
+	 *  = 0x08 | 0x04 | 0x02 | 0x00 = 0x0E
 	 * LOWER byte has to be pushed FIRST
 	 */
-	ldi r25,0x0C
+	ldi r25,0x0E
 	push r25
 	ldi r25,0x00
 	push r25
