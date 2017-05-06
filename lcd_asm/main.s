@@ -435,3 +435,63 @@ print_char_wait3:
 	brne print_char_wait3
 
 	ret
+
+
+/**
+ * send a command word upper and lower 4 bit supplies via parameter on STACK
+ * @type byte is given by upper 4bit and lower 4bit as parameters on STACK
+ */
+send_command_word:
+	/* get function parameters from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	/* load first parameter */
+	subi r30,lo8(-3)
+	ld r26, Z+		/* post increment */
+
+	/* load second parameter */
+	ld r27, Z
+
+	/***** upper 4 bit *****/
+
+	/* indicate command word */
+	in r24,PORTA
+	andi r24,0xEF 		/*1110 1111 -> RS pin low (command word)*/
+	out PORTA,r24
+
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r26 		/* write payload from r26 */
+	ori r24, BIT_PA5 	/* EN pin high */
+	out PORTA,r24
+
+	/* EN delay */
+	ldi r18,lo8(107)
+init_del9:
+	subi r18,1
+	brne init_del9
+
+	in r24,PORTA
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
+	out PORTA,r24
+
+
+	/***** lower 4 bit *****/
+	in r24,PORTA
+	andi r24,0xF0 		/* 1111 0000 -> clear lower 4 bits*/
+	or r24,r27 		/* write payload from r27 */
+	ori r24, BIT_PA5 	/* EN pin high */
+	out PORTA,r24
+
+	/* EN delay */
+	ldi r18,lo8(107)
+init_del10:
+	subi r18,1
+	brne init_del10
+
+	in r24,PORTA
+	andi r24,0xDF 		/*1101 1111 -> EN pin low */
+	out PORTA,r24
+
+	ret
