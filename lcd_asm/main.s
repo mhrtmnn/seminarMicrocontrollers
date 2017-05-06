@@ -243,6 +243,9 @@ vector_lcd:
 	push r25
 	rcall print_char
 
+	/* take variables from stack after function call */
+	pop r25
+	pop r25
 
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
@@ -302,13 +305,17 @@ wait6:
 	ret
 
 print_char:
-	/* temporary take ret addr from stack to access parameters */
-	pop r18
-	pop r19
+	/* get function parameters from stack */
+	in r30,SP_L
+	in r31,SP_H
 
-	/* function parameters */
-	pop r25			/* get payload from stack */
-	pop r26			/* get payload from stack */
+	/* load first parameter */
+	subi r30,lo8(-3)
+	ld r25, Z
+
+	/* load second parameter */
+	subi r30,lo8(-1)
+	ld r26, Z
 
 	/* 	PORTA |= (1<<PA4);    // RS auf 1 setzen (send data) */
 	in r24,PORTA
@@ -373,7 +380,4 @@ wait5:
 	subi r18,1
 	brne wait5
 
-	/* put ret addr back onto the stack */
-	push r19
-	push r18
 	ret
