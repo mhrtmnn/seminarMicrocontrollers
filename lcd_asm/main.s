@@ -297,24 +297,40 @@ vector_lcd:
 	; /* take variable from stack after function call */
 	; pop r25
 
-	/* "Test" = 0x54 0x65 0x73 0x74 */
-	ldi r25,0x74
-	push r25
-	ldi r25,0x73
-	push r25
-	ldi r25,0x65
-	push r25
-	ldi r25,0x54
-	push r25
-	
+	; /* "Test" = 0x54 0x65 0x73 0x74 */
+	; ldi r25,0x74
+	; push r25
+	; ldi r25,0x73
+	; push r25
+	; ldi r25,0x65
+	; push r25
+	; ldi r25,0x54
+	; push r25
+
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+
+	/* EEPROM address reg, read until 0xFF was read */
+	ldi r29, 0x07
+	ldi r16, 0x00
+
+	/* print char from EEPROM */
+print_loop:
+	push r16
+	rcall read_eeprom /* STACK now contains byte to be printed */
 	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
+	pop r17
+
+	subi r16, -1
+	mov r17, r16
+	sub r17, r29
+	brne print_loop
 
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
