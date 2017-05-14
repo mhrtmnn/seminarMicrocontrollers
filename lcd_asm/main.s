@@ -12,8 +12,17 @@ PORTB = 0x18
 PORTC = 0x15
 PORTD = 0x12
 
+#Interrupt
 GICR = 0x3b
 
+#EEPROM
+EECR = 0x1c
+EEDR = 0x1D
+EEARL = 0x1E
+EEARH = 0x1F
+
+BIT_EERE = 0x01
+BIT_EEWE = 0x02
 
 #Bits
 PA0 = 0
@@ -288,25 +297,50 @@ vector_lcd:
 	; /* take variable from stack after function call */
 	; pop r25
 
-	/* "Test" = 0x54 0x65 0x73 0x74 */
-	ldi r25,0x74
-	push r25
-	ldi r25,0x73
-	push r25
-	ldi r25,0x65
-	push r25
-	ldi r25,0x54
-	push r25
-	
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
+	; /* "Test" = 0x54 0x65 0x73 0x74 */
+	; ldi r25,0x74
+	; push r25
+	; ldi r25,0x73
+	; push r25
+	; ldi r25,0x65
+	; push r25
+	; ldi r25,0x54
+	; push r25
 
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+	; rcall print_char
+	; pop r25
+
+
+	/* EEPROM address reg */
+	ldi r16, 0x00
+
+	/* print char from EEPROM until 0xFF was read */
+print_loop:
+	push r16
+	rcall read_eeprom /* STACK now contains the byte read from EEPROM */
+	pop r29
+
+	/* check if r29 is equal to 0xFF (default value of EEPROM i.e. unused)*/
+	ldi r17, 0xFF
+	sub r17, r29
+	breq skip
+
+	/* r29 contains valid data, print it */
+	push r29
+	rcall print_char
+	pop r17
+
+	/* increment addr register and continue loop */
+	subi r16, -1
+	rjmp print_loop
+
+skip:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
@@ -650,5 +684,42 @@ lcd_enable_delay:
 	in r24,PORTA
 	andi r24,0xDF 		/*1101 1111 -> EN pin low */
 	out PORTA,r24
+
+	ret
+
+/**
+ * Helper function read a byte from EEPROM
+ * low addr byte is passed as a function parameter,
+ * payload read from EEPROM replaces addr in STACK
+ */
+read_eeprom:
+	/* get EEPROM low addr from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	/* load parameter */
+	subi r30,lo8(-3)
+	ld r26, Z
+
+	/* wait for pending writes to finish */
+	ldi r27, BIT_EEWE
+wait_write_enable:
+	in r28, EECR
+	and r28, r27
+	brne wait_write_enable
+
+	/* set EEPROM address to be read from */
+	ldi r27, 0x00
+	out EEARH, r27
+	out EEARL, r26
+
+	/* set read enable bit */
+	in r28, EECR
+	ori r28, BIT_EERE
+	out EECR, r28
+
+	/* read read data and copy it into stack */
+	in r26, EEDR
+	st Z,r26
 
 	ret
