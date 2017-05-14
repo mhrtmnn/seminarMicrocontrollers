@@ -12,8 +12,17 @@ PORTB = 0x18
 PORTC = 0x15
 PORTD = 0x12
 
+#Interrupt
 GICR = 0x3b
 
+#EEPROM
+EECR = 0x1c
+EEDR = 0x1D
+EEARL = 0x1E
+EEARH = 0x1F
+
+BIT_EERE = 0x01
+BIT_EEWE = 0x02
 
 #Bits
 PA0 = 0
