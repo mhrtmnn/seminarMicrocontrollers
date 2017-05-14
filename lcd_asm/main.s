@@ -661,3 +661,40 @@ lcd_enable_delay:
 	out PORTA,r24
 
 	ret
+
+/**
+ * Helper function read a byte from EEPROM
+ * low addr byte is passed as a function parameter,
+ * payload read from EEPROM replaces addr in STACK
+ */
+read_eeprom:
+	/* get EEPROM low addr from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	/* load parameter */
+	subi r30,lo8(-3)
+	ld r26, Z
+
+	/* wait for pending writes to finish */
+	ldi r27, BIT_EEWE
+wait_write_enable:
+	in r28, EECR
+	and r28, r27
+	brne wait_write_enable
+
+	/* set EEPROM address to be read from */
+	ldi r27, 0x00
+	out EEARH, r27
+	out EEARL, r26
+
+	/* set read enable bit */
+	in r28, EECR
+	ori r28, BIT_EERE
+	out EECR, r28
+
+	/* read read data and copy it into stack */
+	in r26, EEDR
+	st Z,r26
+
+	ret
