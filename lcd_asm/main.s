@@ -13,16 +13,16 @@ PORTC = 0x15
 PORTD = 0x12
 
 #Interrupt
-GICR = 0x3b
+GICR 		= 0x3b		#General Interrupt Control Register
 
 #EEPROM
-EECR = 0x1c
-EEDR = 0x1D
-EEARL = 0x1E
-EEARH = 0x1F
+EECR 		= 0x1c		#EEPROM Control Register
+EEDR 		= 0x1D		#EEPROM Data Register
+EEARL 		= 0x1E		#EEPROM Address Register low
+EEARH 		= 0x1F		#EEPROM Address Register high
 
-BIT_EERE = 0x01
-BIT_EEWE = 0x02
+BIT_EERE 	= 0x01		#EEPROM Read Enable
+BIT_EEWE 	= 0x02		#EEPROM Write Enable
 
 #Bits
 PA0 = 0
