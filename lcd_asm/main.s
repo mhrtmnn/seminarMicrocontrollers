@@ -1,5 +1,5 @@
 /*************************** numeric constants ***************************/
-__SREG__ = 0x3f
+SREG = 0x3f
 
 #Registers
 DDRA = 0x1A
@@ -239,7 +239,7 @@ main_wait:
 /******************************** ISR for INT0 ********************************/
 vector_0:
 	/* save status reg to r0 */
-	in r0,__SREG__
+	in r0,SREG
 	push r0
 	push r18
 	push r19
@@ -273,14 +273,14 @@ v0_deb_del:
 	pop r0
 
 	/* restore sreg */
-	out __SREG__,r0
+	out SREG,r0
 	reti
 
 
 /******************************** ISR for INT1 ********************************/
 vector_lcd:
 	/* save status reg to r0 */
-	in r0,__SREG__
+	in r0,SREG
 	push r0
 	push r18
 	push r19
@@ -369,7 +369,7 @@ v1_deb_del:
 	pop r0
 
 	/* restore sreg */
-	out __SREG__,r0
+	out SREG,r0
 	reti
 
 
