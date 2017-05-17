@@ -222,6 +222,9 @@ main:
 	/* initialize the LC-Display */
 	rcall lcd_init
 
+	/* initialize the UART-Interface */
+	rcall setup_uart
+
 	/* setup interrupts */
 	in r24,GICR
 	ori r24,BIT_INT0 	/* enable INT0 = BIT(6) */
