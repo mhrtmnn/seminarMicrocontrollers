@@ -748,3 +748,39 @@ wait_write_enable:
 	st Z,r26
 
 	ret
+
+setup_uart:
+	/**
+	 * F_CPU = 16000000
+	 * BAUD  = 9600 (USART Baud Rate Register)
+	 * UBRR  = (F_CPU / (16*BAUD)) - 1 = 103 = 0x67 (according to datasheet)
+	 */
+
+	/* setup UBRR */
+	ldi UBRRH, 0x00
+	ldi UBRRL, 0x67
+
+	/* enable UART Transmitter and Receiver */
+	in r24, UCSRB
+	ori r24, BIT_TXEN
+	ori r24, RXEN
+	out UCSRB, r24
+
+	/* select asynchronous mode */
+	in r24, UCSRC
+	ori r24, URSEL 		/* select write to UCSRC */
+	andi r24, 0xBF 		/* 1011 1111 ie disable BIT(6) = UMSEL */
+	out UCSRC, r24
+
+	/* Set frame format: 8bit data (UCSZ2=0,UCSZ1=1,UCSZ0=1) */
+	in r24, UCSRC
+	ori r24, URSEL 		/* select write to UCSRC */
+	ori r24, BIT_UCSZ0
+	ori r24, BIT_UCSZ1
+	out UCSRC, r24
+
+	in r24, UCSRB
+	andi r24, 0xFB 		/* 1111 1011 ie disable BIT(2) = UCSZ2 */
+	out UCSRB, r24
+
+	ret
