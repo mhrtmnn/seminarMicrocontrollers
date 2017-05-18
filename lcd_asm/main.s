@@ -13,41 +13,41 @@ PORTC = 0x15
 PORTD = 0x12
 
 #Interrupt
-GICR 		= 0x3b		#General Interrupt Control Register
+GICR 		= 0x3b		/*General Interrupt Control Register */
 
 #EEPROM
-EECR 		= 0x1c		#EEPROM Control Register
-EEDR 		= 0x1D		#EEPROM Data Register
-EEARL 		= 0x1E		#EEPROM Address Register low
-EEARH 		= 0x1F		#EEPROM Address Register high
+EECR 		= 0x1c		/*EEPROM Control Register */
+EEDR 		= 0x1D		/*EEPROM Data Register */
+EEARL 		= 0x1E		/*EEPROM Address Register low */
+EEARH 		= 0x1F		/*EEPROM Address Register high */
 
-BIT_EERE 	= 0x01		#EEPROM Read Enable
-BIT_EEWE 	= 0x02		#EEPROM Write Enable
+BIT_EERE 	= 0x01		/*EEPROM Read Enable */
+BIT_EEWE 	= 0x02		/*EEPROM Write Enable */
 
 #UART
-UBRRL 		= 0x09		#USART Baud Rate Register low
-UBRRH 		= 0x20		#USART Baud Rate Register high (shared with UCSRC)
+UBRRL 		= 0x09		/*USART Baud Rate Register low */
+UBRRH 		= 0x20		/*USART Baud Rate Register high (shared with UCSRC) */
 
-UCSRA 		= 0x0B		#USART Control and Status Register A
-UCSRB 		= 0x0A		#USART Control and Status Register B
-UCSRC 		= 0x20		#USART Control and Status Register C (shared with UBRRH)
+UCSRA 		= 0x0B		/*USART Control and Status Register A */
+UCSRB 		= 0x0A		/*USART Control and Status Register B */
+UCSRC 		= 0x20		/*USART Control and Status Register C (shared with UBRRH) */
 
-UDR 		= 0x0C		#USART I/O Data Register
+UDR 		= 0x0C		/*USART I/O Data Register */
 
-BIT_UDRE 	= 0x20		#Data Register Empty
+BIT_UDRE 	= 0x20		/*Data Register Empty */
 
-BIT_TXEN 	= 0x08		#USART Transmit Enable
-BIT_RXEN 	= 0x10		#USART Receiver Enable
+BIT_TXEN 	= 0x08		/*USART Transmit Enable */
+BIT_RXEN 	= 0x10		/*USART Receiver Enable */
 
-BIT_RXC 	= 0x80		#Rx Complete
-BIT_TXC 	= 0x40		#Tx Complete
+BIT_RXC 	= 0x80		/* Rx Complete */
+BIT_TXC 	= 0x40		/* Tx Complete */
 
-BIT_URSEL 	= 0x80		#This bit selects between accessing the UBRRH or the UCSRC Register. It is read as zero when reading UBRRH. The URSEL must be zero when writing the UBRRH.
-BIT_UMSEL 	= 0x40		#select between asynchronous (0) and synchronous (1)
+BIT_URSEL 	= 0x80		/* This bit selects between accessing the UBRRH or the UCSRC Register. It is read as zero when reading UBRRH. The URSEL must be zero when writing the UBRRH. */
+BIT_UMSEL 	= 0x40		/* select between asynchronous (0) and synchronous (1) */
 
-BIT_UCSZ0 	= 0x02		#USART character size setup
-BIT_UCSZ1 	= 0x04		#USART character size setup
-BIT_UCSZ2 	= 0x04		#USART character size setup
+BIT_UCSZ0 	= 0x02		/* USART character size setup */
+BIT_UCSZ1 	= 0x04		/* USART character size setup */
+BIT_UCSZ2 	= 0x04		/* USART character size setup */
 
 #Bits
 PA0 = 0
