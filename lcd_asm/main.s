@@ -760,8 +760,10 @@ setup_uart:
 	 */
 
 	/* setup UBRR */
-	ldi UBRRH, 0x00
-	ldi UBRRL, 0x67
+	ldi r24, 0x00
+	out UBRRH, r24
+	ldi r24, 0x67
+	out UBRRL, r24
 
 	/* enable UART Transmitter and Receiver */
 	in r24, UCSRB
