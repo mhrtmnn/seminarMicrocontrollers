@@ -805,8 +805,9 @@ wait_receive_incomplete:
 	/* copy the read data into stack */
 	in r30,SP_L
 	in r31,SP_H
+	subi r30,lo8(-3)
 
-	in r26, UDR
+	in r26, UDR		/* read data */
 	st Z,r26
 
 	ret
@@ -826,11 +827,9 @@ wait_dr_not_empty:
 	/* get data from stack */
 	in r30,SP_L
 	in r31,SP_H
-
 	subi r30,lo8(-3)
-	ld r26, Z
 
-	/* write data */
-	out UDR, r26
+	ld r26, Z
+	out UDR, r26	/* write data */
 
 	ret
