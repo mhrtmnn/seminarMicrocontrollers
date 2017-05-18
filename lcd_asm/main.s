@@ -768,18 +768,18 @@ setup_uart:
 	/* enable UART Transmitter and Receiver */
 	in r24, UCSRB
 	ori r24, BIT_TXEN
-	ori r24, RXEN
+	ori r24, BIT_RXEN
 	out UCSRB, r24
 
 	/* select asynchronous mode */
 	in r24, UCSRC
-	ori r24, URSEL 		/* select write to UCSRC */
+	ori r24, BIT_URSEL 	/* select write to UCSRC */
 	andi r24, 0xBF 		/* 1011 1111 ie disable BIT(6) = UMSEL */
 	out UCSRC, r24
 
 	/* Set frame format: 8bit data (UCSZ2=0,UCSZ1=1,UCSZ0=1) */
 	in r24, UCSRC
-	ori r24, URSEL 		/* select write to UCSRC */
+	ori r24, BIT_URSEL 	/* select write to UCSRC */
 	ori r24, BIT_UCSZ0
 	ori r24, BIT_UCSZ1
 	out UCSRC, r24
