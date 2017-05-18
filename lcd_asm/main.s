@@ -810,3 +810,27 @@ wait_receive_incomplete:
 	st Z,r26
 
 	ret
+
+/**
+ * Helper function writes a byte to UART-Interface
+ * payload to write is given via parameter on STACK
+ */
+write_uart:
+	/* wait until Data Register is empty */
+	ldi r27, BIT_UDRE
+wait_dr_not_empty:
+	in r28, UCSRA
+	and r28, r27
+	breq wait_dr_not_empty
+
+	/* get data from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	subi r30,lo8(-3)
+	ld r26, Z
+
+	/* write data */
+	out UDR, r26
+
+	ret
