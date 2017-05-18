@@ -789,3 +789,24 @@ setup_uart:
 	out UCSRB, r24
 
 	ret
+
+	/**
+	 * Helper function read a byte from UART-Interface
+	 * payload read from UART replaces parameter (empty) in STACK
+	 */
+read_uart:
+	/* wait until receive complete */
+	ldi r27, BIT_RXC
+wait_receive_incomplete:
+	in r28, UCSRA
+	and r28, r27
+	breq wait_receive_incomplete
+
+	/* copy the read data into stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	in r26, UDR
+	st Z,r26
+
+	ret
