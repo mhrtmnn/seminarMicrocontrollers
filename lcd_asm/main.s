@@ -316,25 +316,30 @@ vector_lcd:
 	push r23
 	push r24
 
-	/* "Test" = 0x54 0x65 0x73 0x74 */
-	ldi r25,0x74
-	push r25
-	ldi r25,0x73
-	push r25
-	ldi r25,0x65
-	push r25
-	ldi r25,0x54
-	push r25
+	/* EEPROM address reg */
+	ldi r16, 0x00
 
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
+	/* print char from EEPROM until 0xFF was read */
+print_loop:
+	push r16
+	rcall read_eeprom /* STACK now contains the byte read from EEPROM */
+	pop r29
 
+	/* check if r29 is equal to 0xFF (default value of EEPROM i.e. unused)*/
+	ldi r17, 0xFF
+	sub r17, r29
+	breq skip
+
+	/* r29 contains valid data, print it */
+	push r29
+	rcall print_char
+	pop r17
+
+	/* increment addr register and continue loop */
+	subi r16, -1
+	rjmp print_loop
+
+skip:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
