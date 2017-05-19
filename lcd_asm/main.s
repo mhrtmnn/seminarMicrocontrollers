@@ -316,24 +316,22 @@ vector_lcd:
 	push r23
 	push r24
 
-	/* "Test" = 0x54 0x65 0x73 0x74 */
-	ldi r25,0x74
-	push r25
-	ldi r25,0x73
-	push r25
-	ldi r25,0x65
-	push r25
-	ldi r25,0x54
-	push r25
+	/* register the serial data will be copied into */
+	ldi r16, 0x00
+serial_print_loop:
+	push r16
+	rcall read_uart 	/* replaces STACK entry with received data */
+	pop r16
 
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
+	/* check if r29 is equal to 0x1B (ASCII value of ESC) */
+	ldi r17, 0x1B
+	sub r17, r16
+	breq skip
+
+	push r16
+	rcall write_uart 	/* echo character via UART */
+	rcall print_char 	/* display the character on LCD */
+	pop r16
 
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
@@ -354,6 +352,9 @@ v1_deb_del:
 	sbci r20,0
 	brne v1_deb_del
 
+	rjmp serial_print_loop
+
+skip:
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
