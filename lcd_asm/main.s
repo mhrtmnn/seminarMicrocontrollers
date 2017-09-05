@@ -461,6 +461,9 @@ print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
 
+	/*############# increment Cursor position register #############*/
+	subi r21,-1
+
 	ret
 
 
@@ -608,6 +611,9 @@ init_del5:
 	subi r18,1
 	sbci r19,0
 	brne init_del5
+
+	/*###################### setup cursor register ######################*/
+	ldi r21,0x00
 
 	ret
 
