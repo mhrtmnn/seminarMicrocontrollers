@@ -491,22 +491,11 @@ print_backspace:
 	cpi r21,0
 	breq skip
 
-	ldi r25,0x80	/* command to set DDRAM Address */
-	subi r25,-0x00	/* got to Line 1 */
-#	subi r25,-0x40	/* got to Line 2 */
-
 	/* go back to previous cursor position */
-	subi r21,1
-
-	/* Add current cursor position */
-	add r25,r21
-
-	/* send command to move cursor to position of char to be deleted
-	 * Layout: 1AAAAAAA, where AAAAAAA is a DDRAM address
-	 */
+	mov r25,r21
+	subi r25,1
 	push r25
-	rcall send_command_word
-	/* do not take from stack, as we send it again later ... */
+	rcall set_cursor
 
 	/* print blank character, ie delete current character */
 	ldi r29,0x10
@@ -514,11 +503,8 @@ print_backspace:
 	rcall print_char		/* print char advances the cursor position back to original one */
 	pop r29
 
-	/* go back to previous position, as cursor should stay in deleted char position */
-	subi r21,1
-
 	/* send command to move cursor to the deleted char, lies on stack already */
-	rcall send_command_word
+	rcall set_cursor
 	pop r0
 
 skip:
