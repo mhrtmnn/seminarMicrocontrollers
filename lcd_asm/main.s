@@ -160,7 +160,7 @@ RAMEND_L = 0x5F
 .org 0x00
 	rjmp main 		/* $00 = 0x00: reset 		*/
 .org 0x04
-	rjmp vector_0 		/* $02 = 0x04: INT0 		*/
+	rjmp buf_vector_lcd	/* $02 = 0x04: INT0 		*/
 .org 0x08
 	rjmp vector_lcd		/* $04 = 0x08: INT1 		*/
 .org 0x0C
@@ -265,23 +265,15 @@ main_wait:
 
 
 /******************************** ISR for INT0 ********************************/
-vector_0:
+buf_vector_lcd:
 	/* save status reg to r0 */
 	in r0,SREG
 	push r0
 	push r18
 	push r19
 	push r20
+	push r23
 	push r24
-
-	/* toggle led */
-	ldi r24,BIT_PB1
-	push r24
-
-	rcall toggler
-
-	/* take variable from stack after function call */
-	pop r24
 
 	/* debounce delay */
 	ldi r18,lo8(500000)
@@ -293,8 +285,58 @@ v0_deb_del:
 	sbci r20,0
 	brne v0_deb_del
 
+	/* setup register that holds current buffer position (first SRAM address is 0x60) */
+	clr r29
+	ldi r28,0x60
+
+	/* register the serial data will be copied into */
+	ldi r16, 0x00
+serial_buf_print_loop:
+	/*##################### copy UART data to memory #####################*/
+	push r16
+	rcall read_uart 	/* replaces STACK entry with received data */
+	pop r16
+
+	/* store read char in memory, post increment */
+	st Y+,r16
+
+	/* check if r16 is equal to 0x00 (End of transmission) */
+	cpi r16,0
+	breq end_of_transmission
+
+	/*################### toggle led for confirmation ###################*/
+	ldi r25,BIT_PB2
+	push r25
+	rcall toggler
+	pop r25
+
+	rjmp serial_buf_print_loop
+
+end_of_transmission:
+	/*######################## print from memory ########################*/
+	clr r29
+	ldi r28,0x60
+
+buffer_print_loop:
+	/* load data from memory, post increment */
+	ld r16,Y+
+
+	/* null byte indicates end of string */
+	cpi r16,0
+	breq exit_buffer_isr
+
+	/* print contents of memory */
+	push r16
+	rcall write_uart 	/* echo character via UART */
+	rcall print_char 	/* display the character on LCD */
+	pop r16
+
+	rjmp buffer_print_loop
+
+exit_buffer_isr:
 	/* pop all the registers in reverse order */
 	pop r24
+	pop r23
 	pop r20
 	pop r19
 	pop r18
