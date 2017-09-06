@@ -528,7 +528,6 @@ skip:
  * clear the lcd and move cursor back to home position
  */
 clear_lcd:
-
 	ldi r25,0x01 /* clear display */
 	push r25
 	rcall send_command_word
@@ -540,7 +539,6 @@ clear_lcd:
  * initialize the LC-Display
  */
 lcd_init:
-
 	/* wait for LCD init [15ms = 60000cycles]
 	ldi r18,lo8(60000)
 	ldi r19,hi8(60000)
