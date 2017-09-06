@@ -481,6 +481,24 @@ print_char_wait2:
 	/*############# increment Cursor position register #############*/
 	subi r21,-1
 
+	/* handle cursor outside line */
+	cpi r21,16 /* overflow into second row */
+	brne print_char_case1
+	push r21
+	rcall set_cursor
+	pop r0
+	rjmp print_char_case2
+
+print_char_case1:
+	cpi r21,32 /* overflow into first row */
+	brne print_char_case2
+	ldi r21,0
+	push r21
+	rcall set_cursor
+	pop r0
+
+print_char_case2:
+
 	ret
 
 /**
