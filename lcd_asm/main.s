@@ -326,7 +326,7 @@ serial_print_loop:
 	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
 	ldi r17, 0x1B
 	sub r17, r16
-	breq skip
+	breq exit_isr
 
 	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
 	ldi r17, 0x08
@@ -363,7 +363,7 @@ v1_deb_del:
 
 	rjmp serial_print_loop
 
-skip:
+exit_isr:
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
