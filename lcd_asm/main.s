@@ -160,7 +160,7 @@ RAMEND_L = 0x5F
 .org 0x00
 	rjmp main 		/* $00 = 0x00: reset 		*/
 .org 0x04
-	rjmp vector_0 		/* $02 = 0x04: INT0 		*/
+	rjmp buf_vector_lcd	/* $02 = 0x04: INT0 		*/
 .org 0x08
 	rjmp vector_lcd		/* $04 = 0x08: INT1 		*/
 .org 0x0C
@@ -265,23 +265,15 @@ main_wait:
 
 
 /******************************** ISR for INT0 ********************************/
-vector_0:
+buf_vector_lcd:
 	/* save status reg to r0 */
 	in r0,SREG
 	push r0
 	push r18
 	push r19
 	push r20
+	push r23
 	push r24
-
-	/* toggle led */
-	ldi r24,BIT_PB1
-	push r24
-
-	rcall toggler
-
-	/* take variable from stack after function call */
-	pop r24
 
 	/* debounce delay */
 	ldi r18,lo8(500000)
@@ -293,8 +285,58 @@ v0_deb_del:
 	sbci r20,0
 	brne v0_deb_del
 
+	/* setup register that holds current buffer position (first SRAM address is 0x60) */
+	clr r29
+	ldi r28,0x60
+
+	/* register the serial data will be copied into */
+	ldi r16, 0x00
+serial_buf_print_loop:
+	/*##################### copy UART data to memory #####################*/
+	push r16
+	rcall read_uart 	/* replaces STACK entry with received data */
+	pop r16
+
+	/* store read char in memory, post increment */
+	st Y+,r16
+
+	/* check if r16 is equal to 0x00 (End of transmission) */
+	cpi r16,0
+	breq end_of_transmission
+
+	/*################### toggle led for confirmation ###################*/
+	ldi r25,BIT_PB2
+	push r25
+	rcall toggler
+	pop r25
+
+	rjmp serial_buf_print_loop
+
+end_of_transmission:
+	/*######################## print from memory ########################*/
+	clr r29
+	ldi r28,0x60
+
+buffer_print_loop:
+	/* load data from memory, post increment */
+	ld r16,Y+
+
+	/* null byte indicates end of string */
+	cpi r16,0
+	breq exit_buffer_isr
+
+	/* print contents of memory */
+	push r16
+	rcall write_uart 	/* echo character via UART */
+	rcall print_char 	/* display the character on LCD */
+	pop r16
+
+	rjmp buffer_print_loop
+
+exit_buffer_isr:
 	/* pop all the registers in reverse order */
 	pop r24
+	pop r23
 	pop r20
 	pop r19
 	pop r18
@@ -316,12 +358,24 @@ vector_lcd:
 	push r23
 	push r24
 
+	/* debounce delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+v1_deb_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne v1_deb_del
+
 	/* register the serial data will be copied into */
 	ldi r16, 0x00
 serial_print_loop:
 	push r16
 	rcall read_uart 	/* replaces STACK entry with received data */
 	pop r16
+
+	/*##################### check the received data #####################*/
 
 	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
 	ldi r17, 0x1B
@@ -353,21 +407,8 @@ merge:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
-
 	rcall toggler
-
-	/* take variable from stack after function call */
 	pop r25
-
-	/* debounce delay */
-	ldi r18,lo8(500000)
-	ldi r19,hi8(500000)
-	ldi r20,hlo8(500000)
-v1_deb_del:
-	subi r18,1
-	sbci r19,0
-	sbci r20,0
-	brne v1_deb_del
 
 	rjmp serial_print_loop
 
@@ -505,6 +546,8 @@ print_char_case2:
  * print a backspace character
  */
 print_backspace:
+	push r29
+
 	/* skip if we are at position 0 */
 	cpi r21,0
 	breq skip
@@ -526,6 +569,7 @@ print_backspace:
 	pop r0
 
 skip:
+	pop r29
 	ret
 
 
@@ -815,12 +859,14 @@ lcd_enable_delay:
  * payload read from EEPROM replaces addr in STACK
  */
 read_eeprom:
+	push r28
+
 	/* get EEPROM low addr from stack */
 	in r30,SP_L
 	in r31,SP_H
 
 	/* load parameter */
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 	ld r26, Z
 
 	/* wait for pending writes to finish */
@@ -844,6 +890,7 @@ wait_write_enable:
 	in r26, EEDR
 	st Z,r26
 
+	pop r28
 	ret
 
 setup_uart:
@@ -889,6 +936,8 @@ setup_uart:
 	 * payload read from UART replaces parameter (empty) in STACK
 	 */
 read_uart:
+	push r28
+
 	/* wait until receive complete */
 	ldi r27, BIT_RXC
 wait_receive_incomplete:
@@ -899,11 +948,12 @@ wait_receive_incomplete:
 	/* copy the read data into stack */
 	in r30,SP_L
 	in r31,SP_H
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 
 	in r26, UDR		/* read data */
 	st Z,r26
 
+	pop r28
 	ret
 
 /**
@@ -911,6 +961,8 @@ wait_receive_incomplete:
  * payload to write is given via parameter on STACK
  */
 write_uart:
+	push r28
+
 	/* wait until Data Register is empty */
 	ldi r27, BIT_UDRE
 wait_dr_not_empty:
@@ -921,9 +973,10 @@ wait_dr_not_empty:
 	/* get data from stack */
 	in r30,SP_L
 	in r31,SP_H
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 
 	ld r26, Z
 	out UDR, r26	/* write data */
 
+	pop r28
 	ret
