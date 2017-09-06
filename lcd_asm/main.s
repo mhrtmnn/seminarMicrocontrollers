@@ -664,6 +664,14 @@ send_command_word:
 
 	rcall lcd_enable
 
+	/* delay 1ms == 4000cycles, inconsistent results without this */
+	ldi r18,lo8(8000)
+	ldi r19,hi8(8000)
+command_word_delay:
+	subi r18,1
+	sbci r19,0
+	brne command_word_delay
+
 	ret
 
 
