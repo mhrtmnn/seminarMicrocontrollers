@@ -323,12 +323,12 @@ serial_print_loop:
 	rcall read_uart 	/* replaces STACK entry with received data */
 	pop r16
 
-	/* check if r29 is equal to 0x1B (ASCII value of ESC) */
+	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
 	ldi r17, 0x1B
 	sub r17, r16
 	breq skip
 
-	/* check if r29 is equal to 0x08 (ASCII value of backspace) */
+	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
 	ldi r17, 0x08
 	sub r17, r16
 	brne print
