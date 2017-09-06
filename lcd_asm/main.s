@@ -487,6 +487,10 @@ print_char_wait2:
  * print a backspace character
  */
 print_backspace:
+	/* skip if we are at position 0 */
+	cpi r21,0
+	breq skip
+
 	ldi r25,0x80	/* command to set DDRAM Address */
 	subi r25,-0x00	/* got to Line 1 */
 #	subi r25,-0x40	/* got to Line 2 */
@@ -517,6 +521,7 @@ print_backspace:
 	rcall send_command_word
 	pop r0
 
+skip:
 	ret
 
 /**
