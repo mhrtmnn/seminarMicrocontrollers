@@ -505,6 +505,8 @@ print_char_case2:
  * print a backspace character
  */
 print_backspace:
+	push r29
+
 	/* skip if we are at position 0 */
 	cpi r21,0
 	breq skip
@@ -526,6 +528,7 @@ print_backspace:
 	pop r0
 
 skip:
+	pop r29
 	ret
 
 
@@ -815,12 +818,14 @@ lcd_enable_delay:
  * payload read from EEPROM replaces addr in STACK
  */
 read_eeprom:
+	push r28
+
 	/* get EEPROM low addr from stack */
 	in r30,SP_L
 	in r31,SP_H
 
 	/* load parameter */
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 	ld r26, Z
 
 	/* wait for pending writes to finish */
@@ -844,6 +849,7 @@ wait_write_enable:
 	in r26, EEDR
 	st Z,r26
 
+	pop r28
 	ret
 
 setup_uart:
@@ -889,6 +895,8 @@ setup_uart:
 	 * payload read from UART replaces parameter (empty) in STACK
 	 */
 read_uart:
+	push r28
+
 	/* wait until receive complete */
 	ldi r27, BIT_RXC
 wait_receive_incomplete:
@@ -899,11 +907,12 @@ wait_receive_incomplete:
 	/* copy the read data into stack */
 	in r30,SP_L
 	in r31,SP_H
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 
 	in r26, UDR		/* read data */
 	st Z,r26
 
+	pop r28
 	ret
 
 /**
@@ -911,6 +920,8 @@ wait_receive_incomplete:
  * payload to write is given via parameter on STACK
  */
 write_uart:
+	push r28
+
 	/* wait until Data Register is empty */
 	ldi r27, BIT_UDRE
 wait_dr_not_empty:
@@ -921,9 +932,10 @@ wait_dr_not_empty:
 	/* get data from stack */
 	in r30,SP_L
 	in r31,SP_H
-	subi r30,lo8(-3)
+	subi r30,lo8(-4)
 
 	ld r26, Z
 	out UDR, r26	/* write data */
 
+	pop r28
 	ret
