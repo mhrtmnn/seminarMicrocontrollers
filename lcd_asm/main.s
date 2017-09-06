@@ -328,11 +328,20 @@ serial_print_loop:
 	sub r17, r16
 	breq skip
 
+	/* check if r29 is equal to 0x08 (ASCII value of backspace) */
+	ldi r17, 0x08
+	sub r17, r16
+	brne print
+	rcall print_backspace
+	jmp merge
+
+print:
 	push r16
 	rcall write_uart 	/* echo character via UART */
 	rcall print_char 	/* display the character on LCD */
 	pop r16
 
+merge:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
