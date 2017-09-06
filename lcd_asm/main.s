@@ -316,25 +316,40 @@ vector_lcd:
 	push r23
 	push r24
 
-	/* "Test" = 0x54 0x65 0x73 0x74 */
-	ldi r25,0x74
-	push r25
-	ldi r25,0x73
-	push r25
-	ldi r25,0x65
-	push r25
-	ldi r25,0x54
-	push r25
+	/* register the serial data will be copied into */
+	ldi r16, 0x00
+serial_print_loop:
+	push r16
+	rcall read_uart 	/* replaces STACK entry with received data */
+	pop r16
 
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
-	rcall print_char
-	pop r25
+	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
+	ldi r17, 0x1B
+	sub r17, r16
+	breq exit_isr
 
+	/* check if r16 is equal to 0x06 (ASCII value of ACK) */
+	ldi r17, 0x06
+	sub r17, r16
+	brne case1
+	rcall clear_lcd
+	rjmp merge
+
+case1:
+	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
+	ldi r17, 0x08
+	sub r17, r16
+	brne case2
+	rcall print_backspace
+	rjmp merge
+
+case2:
+	push r16
+	rcall write_uart 	/* echo character via UART */
+	rcall print_char 	/* display the character on LCD */
+	pop r16
+
+merge:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
@@ -354,6 +369,9 @@ v1_deb_del:
 	sbci r20,0
 	brne v1_deb_del
 
+	rjmp serial_print_loop
+
+exit_isr:
 	/* pop all the registers in reverse order */
 	pop r24
 	pop r23
@@ -460,8 +478,58 @@ print_char_wait2:
 	subi r18,1
 	brne print_char_wait2
 
+	/*############# increment Cursor position register #############*/
+	subi r21,-1
+
 	ret
 
+/**
+ * print a backspace character
+ */
+print_backspace:
+	ldi r25,0x80	/* command to set DDRAM Address */
+	subi r25,-0x00	/* got to Line 1 */
+#	subi r25,-0x40	/* got to Line 2 */
+
+	/* go back to previous cursor position */
+	subi r21,1
+
+	/* Add current cursor position */
+	add r25,r21
+
+	/* send command to move cursor to position of char to be deleted
+	 * Layout: 1AAAAAAA, where AAAAAAA is a DDRAM address
+	 */
+	push r25
+	rcall send_command_word
+	/* do not take from stack, as we send it again later ... */
+
+	/* print blank character, ie delete current character */
+	ldi r29,0x10
+	push r29
+	rcall print_char		/* print char advances the cursor position back to original one */
+	pop r29
+
+	/* go back to previous position, as cursor should stay in deleted char position */
+	subi r21,1
+
+	/* send command to move cursor to the deleted char, lies on stack already */
+	rcall send_command_word
+	pop r0
+
+	ret
+
+/**
+ * clear the lcd and move cursor back to home position
+ */
+clear_lcd:
+
+	ldi r25,0x01 /* clear display */
+	push r25
+	rcall send_command_word
+	pop r0
+
+	ret
 
 /**
  * initialize the LC-Display
@@ -608,6 +676,9 @@ init_del5:
 	sbci r19,0
 	brne init_del5
 
+	/*###################### setup cursor register ######################*/
+	ldi r21,0x00
+
 	ret
 
 
@@ -656,6 +727,14 @@ send_command_word:
 	out PORTA,r24
 
 	rcall lcd_enable
+
+	/* delay 1ms == 4000cycles, inconsistent results without this */
+	ldi r18,lo8(8000)
+	ldi r19,hi8(8000)
+command_word_delay:
+	subi r18,1
+	sbci r19,0
+	brne command_word_delay
 
 	ret
 
