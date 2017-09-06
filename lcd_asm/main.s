@@ -358,12 +358,24 @@ vector_lcd:
 	push r23
 	push r24
 
+	/* debounce delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+v1_deb_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne v1_deb_del
+
 	/* register the serial data will be copied into */
 	ldi r16, 0x00
 serial_print_loop:
 	push r16
 	rcall read_uart 	/* replaces STACK entry with received data */
 	pop r16
+
+	/*##################### check the received data #####################*/
 
 	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
 	ldi r17, 0x1B
@@ -395,21 +407,8 @@ merge:
 	/*##################### toggle led for confirmation #####################*/
 	ldi r25,BIT_PB2
 	push r25
-
 	rcall toggler
-
-	/* take variable from stack after function call */
 	pop r25
-
-	/* debounce delay */
-	ldi r18,lo8(500000)
-	ldi r19,hi8(500000)
-	ldi r20,hlo8(500000)
-v1_deb_del:
-	subi r18,1
-	sbci r19,0
-	sbci r20,0
-	brne v1_deb_del
 
 	rjmp serial_print_loop
 
