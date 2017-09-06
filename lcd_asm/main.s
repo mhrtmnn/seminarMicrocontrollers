@@ -524,6 +524,48 @@ print_backspace:
 skip:
 	ret
 
+
+/**
+ * set cursor to specified position
+ * @type position is given as parameters on STACK, positions are numered 0,...,31
+ */
+set_cursor:
+	/* get cursor position from stack */
+	in r30,SP_L
+	in r31,SP_H
+
+	/* load parameter */
+	subi r30,lo8(-3)
+	ld r26, Z
+
+	/* adjust internal cursor position register */
+	mov r21,r26
+
+	/* compile the command word */
+	ldi r25,0x80	/* command to set DDRAM Address */
+
+	/* the display uses positions [0,15] for both line 1 and 2 instead of [0,31] for both
+	 * if position is >=16 we need to subtract 16 and set to second row
+	 */
+	cpi r26,16
+	brlt line_1
+	subi r25,-0x40	/* command to go to Line 2 */
+	subi r26,16		/* adjust the position for the command word */
+
+line_1:
+	/* Add desired cursor position to command word */
+	add r25,r26
+
+	/* send command to move cursor to specified position
+	 * Layout: 1ABBBBBB, where ABBBBBB is a DDRAM address
+	 * (A selects the line, BBBBBB the position in the line)
+	 */
+	push r25
+	rcall send_command_word
+	pop r0
+
+	ret
+
 /**
  * clear the lcd and move cursor back to home position
  */
