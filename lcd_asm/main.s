@@ -328,6 +328,14 @@ serial_print_loop:
 	sub r17, r16
 	breq exit_isr
 
+	/* check if r16 is equal to 0x06 (ASCII value of ACK) */
+	ldi r17, 0x06
+	sub r17, r16
+	brne case1
+	rcall clear_lcd
+	rjmp merge
+
+case1:
 	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
 	ldi r17, 0x08
 	sub r17, r16
