@@ -512,6 +512,18 @@ print_backspace:
 	ret
 
 /**
+ * clear the lcd and move cursor back to home position
+ */
+clear_lcd:
+
+	ldi r25,0x01 /* clear display */
+	push r25
+	rcall send_command_word
+	pop r0
+
+	ret
+
+/**
  * initialize the LC-Display
  */
 lcd_init:
