@@ -331,11 +331,11 @@ serial_print_loop:
 	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
 	ldi r17, 0x08
 	sub r17, r16
-	brne print
+	brne case2
 	rcall print_backspace
-	jmp merge
+	rjmp merge
 
-print:
+case2:
 	push r16
 	rcall write_uart 	/* echo character via UART */
 	rcall print_char 	/* display the character on LCD */
