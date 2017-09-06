@@ -466,6 +466,41 @@ print_char_wait2:
 
 	ret
 
+/**
+ * print a backspace character
+ */
+print_backspace:
+	ldi r25,0x80	/* command to set DDRAM Address */
+	subi r25,-0x00	/* got to Line 1 */
+#	subi r25,-0x40	/* got to Line 2 */
+
+	/* go back to previous cursor position */
+	subi r21,1
+
+	/* Add current cursor position */
+	add r25,r21
+
+	/* send command to move cursor to position of char to be deleted
+	 * Layout: 1AAAAAAA, where AAAAAAA is a DDRAM address
+	 */
+	push r25
+	rcall send_command_word
+	/* do not take from stack, as we send it again later ... */
+
+	/* print blank character, ie delete current character */
+	ldi r29,0x10
+	push r29
+	rcall print_char		/* print char advances the cursor position back to original one */
+	pop r29
+
+	/* go back to previous position, as cursor should stay in deleted char position */
+	subi r21,1
+
+	/* send command to move cursor to the deleted char, lies on stack already */
+	rcall send_command_word
+	pop r0
+
+	ret
 
 /**
  * initialize the LC-Display
