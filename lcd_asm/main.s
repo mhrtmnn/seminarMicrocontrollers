@@ -629,6 +629,17 @@ clear_lcd:
 	rcall send_command_word
 	pop r0
 
+	/* delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+lcd_clear_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne lcd_clear_del
+
+
 	ret
 
 /**
