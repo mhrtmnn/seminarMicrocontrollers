@@ -410,6 +410,9 @@ serial_buf_print_loop:
 
 end_of_transmission:
 	/*######################## print from memory ########################*/
+	/* clear lcd prior to print */
+	rcall clear_lcd
+
 	clr r29
 	ldi r28,0x60
 
