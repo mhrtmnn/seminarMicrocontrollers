@@ -160,7 +160,7 @@ RAMEND_L = 0x5F
 .org 0x00
 	rjmp main 		/* $00 = 0x00: reset 		*/
 .org 0x04
-	rjmp buf_vector_lcd	/* $02 = 0x04: INT0 		*/
+	rjmp vector_buf_lcd	/* $02 = 0x04: INT0 		*/
 .org 0x08
 	rjmp vector_lcd		/* $04 = 0x08: INT1 		*/
 .org 0x0C
@@ -265,7 +265,7 @@ main_wait:
 
 
 /******************************** ISR for INT0 ********************************/
-buf_vector_lcd:
+vector_buf_lcd:
 	/* save status reg to r0 */
 	in r0,SREG
 	push r0
