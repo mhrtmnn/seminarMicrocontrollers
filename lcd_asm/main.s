@@ -243,22 +243,7 @@ main:
 
 /******************************** main loop  ********************************/
 main_loop:
-	/* load counter */
-	ldi r18,lo8(2000000)
-	ldi r19,hi8(2000000)
-	ldi r20,hlo8(2000000)
-
-main_wait:
-	subi r18,1
-	sbci r19,0		/* Subtract with Carry */
-	sbci r20,0		/* Subtract with Carry */
-	brne main_wait
-
-	/* toggle led */
-	in r24,PORTB
-	ldi r23,BIT_PB0
-	eor r24,r23 		/* XOR */
-	out PORTB,r24
+	rcall buffer_lcd
 	rjmp main_loop
 
 
