@@ -285,6 +285,117 @@ v0_deb_del:
 	sbci r20,0
 	brne v0_deb_del
 
+	rcall buffer_lcd
+
+	/* pop all the registers in reverse order */
+	pop r24
+	pop r23
+	pop r20
+	pop r19
+	pop r18
+	pop r0
+
+	/* restore sreg */
+	out SREG,r0
+	reti
+
+
+/******************************** ISR for INT1 ********************************/
+vector_lcd:
+	/* save status reg to r0 */
+	in r0,SREG
+	push r0
+	push r18
+	push r19
+	push r20
+	push r23
+	push r24
+
+	/* debounce delay */
+	ldi r18,lo8(500000)
+	ldi r19,hi8(500000)
+	ldi r20,hlo8(500000)
+v1_deb_del:
+	subi r18,1
+	sbci r19,0
+	sbci r20,0
+	brne v1_deb_del
+
+	rcall lcd
+
+	/* pop all the registers in reverse order */
+	pop r24
+	pop r23
+	pop r20
+	pop r19
+	pop r18
+	pop r0
+
+	/* restore sreg */
+	out SREG,r0
+	reti
+
+
+
+
+/******************************** FUNCTIONS ********************************/
+
+/**
+ * Print data to lcd that was received via UART, charwise
+ */
+lcd:
+	/* register the serial data will be copied into */
+	ldi r16, 0x00
+serial_print_loop:
+	push r16
+	rcall read_uart 	/* replaces STACK entry with received data */
+	pop r16
+
+	/*##################### check the received data #####################*/
+
+	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
+	ldi r17, 0x1B
+	sub r17, r16
+	breq exit_lcd
+
+	/* check if r16 is equal to 0x06 (ASCII value of ACK) */
+	ldi r17, 0x06
+	sub r17, r16
+	brne case1
+	rcall clear_lcd
+	rjmp merge
+
+case1:
+	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
+	ldi r17, 0x08
+	sub r17, r16
+	brne case2
+	rcall print_backspace
+	rjmp merge
+
+case2:
+	push r16
+	rcall write_uart 	/* echo character via UART */
+	rcall print_char 	/* display the character on LCD */
+	pop r16
+
+merge:
+	/*##################### toggle led for confirmation #####################*/
+	ldi r25,BIT_PB2
+	push r25
+	rcall toggler
+	pop r25
+
+	rjmp serial_print_loop
+
+exit_lcd:
+	ret
+
+
+/**
+ * Print data to lcd that was received via UART, buffered until 0x00 was recieved
+ */
+buffer_lcd:
 	/* setup register that holds current buffer position (first SRAM address is 0x60) */
 	clr r29
 	ldi r28,0x60
@@ -323,7 +434,7 @@ buffer_print_loop:
 
 	/* null byte indicates end of string */
 	cpi r16,0
-	breq exit_buffer_isr
+	breq exit_buffer_lcd
 
 	/* print contents of memory */
 	push r16
@@ -333,102 +444,9 @@ buffer_print_loop:
 
 	rjmp buffer_print_loop
 
-exit_buffer_isr:
-	/* pop all the registers in reverse order */
-	pop r24
-	pop r23
-	pop r20
-	pop r19
-	pop r18
-	pop r0
+exit_buffer_lcd:
+	ret
 
-	/* restore sreg */
-	out SREG,r0
-	reti
-
-
-/******************************** ISR for INT1 ********************************/
-vector_lcd:
-	/* save status reg to r0 */
-	in r0,SREG
-	push r0
-	push r18
-	push r19
-	push r20
-	push r23
-	push r24
-
-	/* debounce delay */
-	ldi r18,lo8(500000)
-	ldi r19,hi8(500000)
-	ldi r20,hlo8(500000)
-v1_deb_del:
-	subi r18,1
-	sbci r19,0
-	sbci r20,0
-	brne v1_deb_del
-
-	/* register the serial data will be copied into */
-	ldi r16, 0x00
-serial_print_loop:
-	push r16
-	rcall read_uart 	/* replaces STACK entry with received data */
-	pop r16
-
-	/*##################### check the received data #####################*/
-
-	/* check if r16 is equal to 0x1B (ASCII value of ESC) */
-	ldi r17, 0x1B
-	sub r17, r16
-	breq exit_isr
-
-	/* check if r16 is equal to 0x06 (ASCII value of ACK) */
-	ldi r17, 0x06
-	sub r17, r16
-	brne case1
-	rcall clear_lcd
-	rjmp merge
-
-case1:
-	/* check if r16 is equal to 0x08 (ASCII value of backspace) */
-	ldi r17, 0x08
-	sub r17, r16
-	brne case2
-	rcall print_backspace
-	rjmp merge
-
-case2:
-	push r16
-	rcall write_uart 	/* echo character via UART */
-	rcall print_char 	/* display the character on LCD */
-	pop r16
-
-merge:
-	/*##################### toggle led for confirmation #####################*/
-	ldi r25,BIT_PB2
-	push r25
-	rcall toggler
-	pop r25
-
-	rjmp serial_print_loop
-
-exit_isr:
-	/* pop all the registers in reverse order */
-	pop r24
-	pop r23
-	pop r20
-	pop r19
-	pop r18
-	pop r0
-
-	/* restore sreg */
-	out SREG,r0
-	reti
-
-
-
-
-/******************************** FUNCTIONS ********************************/
 /**
  * toggle specified led at PORTB
  * @type pin is given by parameter on STACK
