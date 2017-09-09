@@ -28,8 +28,8 @@ SRC = $(TARGET).c
 OBJECTS = $(SRC:.c=.o)
 
 
-LFUSE      = 0x64
-HFUSE      = 0xD1
+LFUSE      = 0xBF
+HFUSE      = 0x89
 FUSES      = -U hfuse:w:$(HFUSE):m -U lfuse:w:$(LFUSE):m
 
 # ATMega8 fuse bits used above (fuse bits for other devices are different!):
