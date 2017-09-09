@@ -739,11 +739,11 @@ init_del4:
 
 	/*################# COMMAND: Display on / Cursor on / blink off #################*/
 
-	/* send: LCD_SET_DISPLAY | LCD_DISPLAY_ON | LCD_CURSOR_ON | LCD_BLINKING_OFF
-	 *  = 0x08 | 0x04 | 0x02 | 0x00 = 0x0E
+	/* send: LCD_SET_DISPLAY | LCD_DISPLAY_ON | LCD_CURSOR_OFF | LCD_BLINKING_OFF
+	 *  = 0x08 | 0x04 | 0x00 | 0x00 = 0x0C
 	 * LOWER byte has to be pushed FIRST
 	 */
-	ldi r25,0x0E
+	ldi r25,0x0C
 	push r25
 
 	rcall send_command_word
