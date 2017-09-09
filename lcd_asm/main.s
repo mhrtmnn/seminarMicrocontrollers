@@ -629,6 +629,9 @@ clear_lcd:
 	rcall send_command_word
 	pop r0
 
+	/* set to position 0 */
+	ldi r21,0
+
 	/* delay */
 	ldi r18,lo8(500000)
 	ldi r19,hi8(500000)
