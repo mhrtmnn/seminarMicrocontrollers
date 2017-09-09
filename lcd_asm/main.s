@@ -401,6 +401,10 @@ serial_buf_print_loop:
 	cpi r16,0x0D
 	breq end_of_transmission
 
+	/* check if r16 is equal to 0x0F (encodes ° symbol), replace by displays symbol */
+	cpi r16,0x0F
+	ldi r16,0x6F
+
 	/*################### toggle led for confirmation ###################*/
 	ldi r25,BIT_PB2
 	push r25
