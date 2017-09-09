@@ -246,9 +246,6 @@ main_loop:
 	rcall buffer_lcd
 	rjmp main_loop
 
-
-
-
 /******************************** ISR for INT0 ********************************/
 vector_buf_lcd:
 	/* save status reg to r0 */
@@ -641,7 +638,6 @@ lcd_clear_del:
 	sbci r19,0
 	sbci r20,0
 	brne lcd_clear_del
-
 
 	ret
 
