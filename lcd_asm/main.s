@@ -393,8 +393,12 @@ serial_buf_print_loop:
 	/* store read char in memory, post increment */
 	st Y+,r16
 
-	/* check if r16 is equal to 0x00 (End of transmission) */
-	cpi r16,0
+	/* check if r16 is equal to 0x0A (Newline, indicates end of transmission) */
+	cpi r16,0x0A
+	breq end_of_transmission
+
+	/* check if r16 is equal to 0x0D (CR, indicates end of transmission) */
+	cpi r16,0x0D
 	breq end_of_transmission
 
 	/*################### toggle led for confirmation ###################*/
@@ -417,8 +421,12 @@ buffer_print_loop:
 	/* load data from memory, post increment */
 	ld r16,Y+
 
-	/* null byte indicates end of string */
-	cpi r16,0
+	/* 0x0A byte indicates end of string */
+	cpi r16,0x0A
+	breq exit_buffer_lcd
+
+	/* 0x0D byte also indicates end of string */
+	cpi r16,0x0D
 	breq exit_buffer_lcd
 
 	/* print contents of memory */
