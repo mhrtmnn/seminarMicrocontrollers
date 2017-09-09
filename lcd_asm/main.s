@@ -390,6 +390,12 @@ serial_buf_print_loop:
 	rcall read_uart 	/* replaces STACK entry with received data */
 	pop r16
 
+	/* check if r16 is equal to 0x0F (encodes ° symbol), replace by displays symbol */
+	cpi r16,0x0F
+	brne buffer_lcd_skip
+	ldi r16,0xDF
+
+buffer_lcd_skip:
 	/* store read char in memory, post increment */
 	st Y+,r16
 
@@ -400,10 +406,6 @@ serial_buf_print_loop:
 	/* check if r16 is equal to 0x0D (CR, indicates end of transmission) */
 	cpi r16,0x0D
 	breq end_of_transmission
-
-	/* check if r16 is equal to 0x0F (encodes ° symbol), replace by displays symbol */
-	cpi r16,0x0F
-	ldi r16,0x6F
 
 	/*################### toggle led for confirmation ###################*/
 	ldi r25,BIT_PB2
