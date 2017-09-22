@@ -659,7 +659,8 @@ lcd_clear_del:
  * initialize the LC-Display
  */
 lcd_init:
-	/* wait for LCD init [15ms = 60000cycles]
+	/* wait for LCD init [15ms = 60000cycles] */
+
 	ldi r18,lo8(60000)
 	ldi r19,hi8(60000)
 init_del0:
